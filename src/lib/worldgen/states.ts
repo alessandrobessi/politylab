@@ -10,6 +10,7 @@ import type {
 	TechnologyState
 } from '../simulation/models/state';
 import { TECH_DOMAINS } from '../simulation/models/state';
+import { computeFoodCapacity } from '../simulation/systems/food';
 import { distance } from './geometry';
 
 const GOV_TYPES: GovernmentType[] = [
@@ -245,14 +246,7 @@ export function buildStates(
 		const tradeOpenness = clamp01(0.15 + 0.4 * coastalFraction + statsRng.range(0, 0.15));
 
 		// Food capacity (MODEL.md §9), then population from a per-state target ratio.
-		const techModifier = 0.65 + 1.1 * technology.agriculture;
-		const stabilityModifier = 0.75 + 0.25 * stability;
-		let foodCapacity = 0;
-		for (const r of regs) {
-			const infraModifier = 0.75 + 0.5 * r.infrastructure;
-			foodCapacity +=
-				scale * r.area * r.agriculturalPotential * techModifier * infraModifier * stabilityModifier;
-		}
+		const foodCapacity = computeFoodCapacity(technology.agriculture, stability, regs, scale);
 		const targetFoodRatio = statsRng.range(0.95, 1.28);
 		const population = Math.max(1, foodCapacity / targetFoodRatio);
 		const foodRatio = safeDivide(foodCapacity, population, 1);

@@ -2,7 +2,10 @@
  * A hand-built two-state world for unit tests (BLUEPRINT.md milestone 3). Fully
  * deterministic and explicit — no RNG, no world generation. Values sit in the
  * MODEL.md §5 starting ranges and satisfy every `assertFiniteWorld` invariant.
- * Procedural generation arrives in M4.
+ *
+ * Food capacity and population are derived through the same `computeFoodCapacity`
+ * the engine uses, so the fixture stays consistent when run through the engine
+ * (M6 onward). Procedural generation itself is exercised by M4's tests.
  */
 
 import { makeConfig } from '../config';
@@ -12,6 +15,7 @@ import type { Relation } from '../models/relation';
 import type { State, TechDomain, TechnologyState, ResearchPriorities } from '../models/state';
 import { TECH_DOMAINS } from '../models/state';
 import type { World } from '../models/world';
+import { computeFoodCapacity } from '../systems/food';
 
 function tech(value: number): TechnologyState {
 	return Object.fromEntries(TECH_DOMAINS.map((d) => [d, value])) as TechnologyState;
@@ -40,11 +44,12 @@ function relation(overrides: Partial<Relation>): Relation {
 	};
 }
 
-/** 5×2 grid of unit regions; row 0 → first owner, row 1 → second owner. */
+/** 5×2 grid of unit-area regions; row 0 → first owner, row 1 → second owner. */
 function makeRegions(owners: [string, string]): Region[] {
 	const cols = 5;
 	const rows = 2;
 	const cell = 100;
+	const area = 3;
 	const terrainByRow: TerrainType[][] = [
 		['coastal', 'plains', 'plains', 'hills', 'forest'],
 		['plains', 'hills', 'mountains', 'mountains', 'desert']
@@ -60,21 +65,22 @@ function makeRegions(owners: [string, string]): Region[] {
 			if (row < rows - 1) neighbors.push(`r${index + cols}`);
 			const x0 = col * cell;
 			const y0 = row * cell;
+			const terrain = terrainByRow[row]![col]!;
 			regions.push({
 				id: `r${index}`,
 				ownerId: owners[row]!,
 				neighbors,
-				area: cell * cell,
-				population: row === 0 ? 600_000 : 300_000,
-				agriculturalPotential: terrainByRow[row]![col] === 'mountains' ? 0.2 : 0.6,
+				area,
+				population: 0, // distributed once states are built
+				agriculturalPotential: terrain === 'mountains' ? 0.2 : 0.6,
 				resources: {
-					iron: terrainByRow[row]![col] === 'hills' ? 0.5 : 0.1,
-					coal: terrainByRow[row]![col] === 'mountains' ? 0.6 : 0.1,
-					oil: terrainByRow[row]![col] === 'desert' ? 0.4 : 0.05,
-					minerals: terrainByRow[row]![col] === 'mountains' ? 0.7 : 0.2,
+					iron: terrain === 'hills' ? 0.5 : 0.1,
+					coal: terrain === 'mountains' ? 0.6 : 0.1,
+					oil: terrain === 'desert' ? 0.4 : 0.05,
+					minerals: terrain === 'mountains' ? 0.7 : 0.2,
 					genericResources: 0.3
 				},
-				terrain: terrainByRow[row]![col]!,
+				terrain,
 				infrastructure: row === 0 ? 0.4 : 0.25,
 				site: [x0 + cell / 2, y0 + cell / 2],
 				polygon: [
@@ -93,12 +99,11 @@ interface StateSeed {
 	id: string;
 	name: string;
 	colorHue: number;
-	population: number;
+	targetFoodRatio: number;
 	gdp: number;
 	capital: number;
 	debt: number;
 	treasury: number;
-	foodCapacity: number;
 	taxRate: number;
 	education: number;
 	urbanization: number;
@@ -111,24 +116,31 @@ interface StateSeed {
 	hereditary: boolean;
 	economy: State['economy'];
 	budget: State['budget'];
-	politics: Pick<
-		State['politics'],
-		| 'legitimacy'
-		| 'stability'
-		| 'politicalParticipation'
-		| 'centralization'
-		| 'ruleOfLaw'
-		| 'institutionalCapacity'
-		| 'eliteConflict'
-		| 'participationGap'
-	>;
+	stability: number;
+	legitimacy: number;
+	politicalParticipation: number;
+	centralization: number;
+	ruleOfLaw: number;
+	institutionalCapacity: number;
+	eliteConflict: number;
+	participationGap: number;
 	factions: State['politics']['factions'];
 }
 
-function makeState(seed: StateSeed, relations: Record<string, Relation>): State {
-	const gdpPerCapita = safeDivide(seed.gdp, seed.population);
-	const foodRatio = safeDivide(seed.foodCapacity, seed.population);
+function makeState(
+	seed: StateSeed,
+	ownedRegions: Region[],
+	scale: number,
+	relations: Record<string, Relation>
+): State {
+	const foodCapacity = computeFoodCapacity(seed.techLevel, seed.stability, ownedRegions, scale);
+	const population = Math.max(1, foodCapacity / seed.targetFoodRatio);
+	const foodRatio = safeDivide(foodCapacity, population, 1);
 	const foodStress = Math.max(0, Math.min(1, (1 - foodRatio) / 0.4));
+
+	for (const r of ownedRegions) r.population = population / ownedRegions.length;
+
+	const gdpPerCapita = safeDivide(seed.gdp, population);
 	const debtRatio = safeDivide(seed.debt, seed.gdp);
 	const debtStress = Math.max(0, Math.min(1, (debtRatio - 0.5) / 1.5));
 	const militarySpending = seed.budget.military * seed.gdp * seed.taxRate;
@@ -139,10 +151,10 @@ function makeState(seed: StateSeed, relations: Record<string, Relation>): State 
 		alive: true,
 		colorHue: seed.colorHue,
 
-		population: seed.population,
-		territory: 500 * 100, // five 100×100 regions
+		population,
+		territory: ownedRegions.reduce((a, r) => a + r.area, 0),
 
-		foodCapacity: seed.foodCapacity,
+		foodCapacity,
 		foodRatio,
 		foodStress,
 
@@ -172,15 +184,22 @@ function makeState(seed: StateSeed, relations: Record<string, Relation>): State 
 		politics: {
 			governmentType: seed.governmentType,
 			hereditary: seed.hereditary,
-			...seed.politics,
-			factions: { ...seed.factions }
+			legitimacy: seed.legitimacy,
+			stability: seed.stability,
+			politicalParticipation: seed.politicalParticipation,
+			centralization: seed.centralization,
+			ruleOfLaw: seed.ruleOfLaw,
+			institutionalCapacity: seed.institutionalCapacity,
+			factions: { ...seed.factions },
+			eliteConflict: seed.eliteConflict,
+			participationGap: seed.participationGap
 		},
 
 		military: {
 			capital: seed.militaryCapital,
 			power: seed.militaryPower,
 			readiness: 0.7,
-			morale: 0.6 + 0.3 * seed.politics.stability,
+			morale: Math.max(0, Math.min(1, 0.5 + 0.4 * seed.stability)),
 			spending: militarySpending,
 			burden: safeDivide(militarySpending, seed.gdp)
 		},
@@ -193,19 +212,22 @@ function makeState(seed: StateSeed, relations: Record<string, Relation>): State 
 }
 
 export function makeTinyWorld(): World {
+	const config = makeConfig();
+	const scale = config.food.areaCapacityScale;
 	const regions = makeRegions(['ardan', 'velos']);
+	const ardanRegions = regions.filter((r) => r.ownerId === 'ardan');
+	const velosRegions = regions.filter((r) => r.ownerId === 'velos');
 
 	const ardan = makeState(
 		{
 			id: 'ardan',
 			name: 'Ardan Republic',
 			colorHue: 210,
-			population: 3_000_000,
+			targetFoodRatio: 1.15,
 			gdp: 4_800_000,
 			capital: 9_000_000,
 			debt: 1_000_000,
 			treasury: 500_000,
-			foodCapacity: 3_300_000,
 			taxRate: 0.2,
 			education: 0.3,
 			urbanization: 0.2,
@@ -225,18 +247,18 @@ export function makeTinyWorld(): World {
 				welfare: 0.15,
 				administration: 0.2
 			},
-			politics: {
-				legitimacy: 0.65,
-				stability: 0.75,
-				politicalParticipation: 0.5,
-				centralization: 0.45,
-				ruleOfLaw: 0.55,
-				institutionalCapacity: 0.5,
-				eliteConflict: 0.2,
-				participationGap: 0.05
-			},
+			stability: 0.75,
+			legitimacy: 0.65,
+			politicalParticipation: 0.5,
+			centralization: 0.45,
+			ruleOfLaw: 0.55,
+			institutionalCapacity: 0.5,
+			eliteConflict: 0.2,
+			participationGap: 0.05,
 			factions: { elite: 0.3, merchant: 0.3, military: 0.2, worker: 0.2 }
 		},
+		ardanRegions,
+		scale,
 		{ velos: relation({ opinion: -0.1, territorialClaims: 0.1, threatPerception: 0.3 }) }
 	);
 
@@ -245,12 +267,11 @@ export function makeTinyWorld(): World {
 			id: 'velos',
 			name: 'Velos',
 			colorHue: 25,
-			population: 1_500_000,
+			targetFoodRatio: 1.05,
 			gdp: 1_800_000,
 			capital: 3_000_000,
 			debt: 2_000_000,
 			treasury: 200_000,
-			foodCapacity: 1_425_000,
 			taxRate: 0.16,
 			education: 0.18,
 			urbanization: 0.1,
@@ -270,18 +291,18 @@ export function makeTinyWorld(): World {
 				welfare: 0.12,
 				administration: 0.27
 			},
-			politics: {
-				legitimacy: 0.55,
-				stability: 0.6,
-				politicalParticipation: 0.2,
-				centralization: 0.7,
-				ruleOfLaw: 0.3,
-				institutionalCapacity: 0.35,
-				eliteConflict: 0.35,
-				participationGap: 0.25
-			},
+			stability: 0.6,
+			legitimacy: 0.55,
+			politicalParticipation: 0.2,
+			centralization: 0.7,
+			ruleOfLaw: 0.3,
+			institutionalCapacity: 0.35,
+			eliteConflict: 0.35,
+			participationGap: 0.25,
 			factions: { elite: 0.45, merchant: 0.15, military: 0.3, worker: 0.1 }
 		},
+		velosRegions,
+		scale,
 		{
 			ardan: relation({
 				opinion: -0.2,
@@ -301,7 +322,7 @@ export function makeTinyWorld(): World {
 		regions,
 		wars: [],
 		events: [],
-		config: makeConfig(),
+		config,
 		nextId: 0
 	};
 }

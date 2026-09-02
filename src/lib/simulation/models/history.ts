@@ -1,3 +1,4 @@
+import type { Cause } from '../events/causes';
 import type { GovernmentType } from './state';
 import type { World } from './world';
 
@@ -22,6 +23,8 @@ export interface StateYearStats {
 	militaryPower: number;
 	territory: number;
 	governmentType: GovernmentType;
+	/** Causal contributors to this year's explainable metrics, by metric name. */
+	causes?: Record<string, Cause[]>;
 }
 
 export interface WorldSnapshot {

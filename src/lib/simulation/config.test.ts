@@ -25,6 +25,7 @@ describe('DEFAULT_MODEL_CONFIG', () => {
 			food: { areaCapacityScale: 330000 },
 			education: { growthCoefficient: 0.015, depreciation: 0.002, referenceIntensity: 0.03 },
 			infrastructure: { growthCoefficient: 0.02, depreciation: 0.005, referenceIntensity: 0.04 },
+			welfare: { referenceIntensity: 0.05 },
 			technology: {
 				innovationRate: 0.006,
 				diffusionRate: 0.01,

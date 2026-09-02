@@ -13,9 +13,10 @@
 import { assertFiniteWorld } from './assert';
 import type { SimContext } from './context';
 import { mean } from './math';
-import { createHistory, type WorldHistory } from './models/history';
+import { createHistory, type StateYearStats, type WorldHistory } from './models/history';
 import type { World } from './models/world';
 import { SeededRandom } from './rng';
+import { TraceSink } from './trace';
 
 import { updateEnvironment } from './systems/environment';
 import { updatePopulation } from './systems/population';
@@ -41,12 +42,14 @@ export interface SimulateOptions {
 /** Advance `world` by one year, in place, and return it. */
 export function simulateYear(world: World, options: SimulateOptions = {}): World {
 	const { history = null, validate = false } = options;
+	const traces = history ? new TraceSink() : null;
 
 	const ctx: SimContext = {
 		config: world.config,
 		rng: new SeededRandom(world.seed).fork(`year:${world.year}`),
 		year: world.year,
-		history
+		history,
+		traces
 	};
 
 	// BLUEPRINT.md §24 phase order. Systems 1–13 are no-ops until their milestone.
@@ -67,7 +70,7 @@ export function simulateYear(world: World, options: SimulateOptions = {}): World
 	world.year += 1;
 
 	if (history) {
-		recordStatistics(world, history); // 14
+		recordStatistics(world, history, traces); // 14
 		maybeSnapshot(world, history); // 15
 	}
 	if (validate) assertFiniteWorld(world);
@@ -81,9 +84,9 @@ export function simulateYears(world: World, years: number, options: SimulateOpti
 	return world;
 }
 
-function recordStatistics(world: World, history: WorldHistory): void {
+function recordStatistics(world: World, history: WorldHistory, traces: TraceSink | null): void {
 	for (const s of world.states) {
-		(history.byState[s.id] ??= []).push({
+		const row: StateYearStats = {
 			year: world.year,
 			stateId: s.id,
 			alive: s.alive,
@@ -96,7 +99,10 @@ function recordStatistics(world: World, history: WorldHistory): void {
 			militaryPower: s.military.power,
 			territory: s.territory,
 			governmentType: s.politics.governmentType
-		});
+		};
+		const causes = traces?.forState(s.id);
+		if (causes) row.causes = causes;
+		(history.byState[s.id] ??= []).push(row);
 	}
 }
 
@@ -123,7 +129,7 @@ export interface Simulation {
  */
 export function createSimulation(world: World): Simulation {
 	const history = createHistory();
-	recordStatistics(world, history);
+	recordStatistics(world, history, null);
 	maybeSnapshot(world, history);
 
 	return {

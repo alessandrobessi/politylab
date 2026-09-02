@@ -53,6 +53,13 @@ export const DEFAULT_MODEL_CONFIG = {
 		referenceIntensity: 0.04
 	},
 
+	// Not in MODEL.md §79. MODEL.md §8/§28/§30 use `welfareEffect` /
+	// `welfareIntensity` without a reference; this normalizes welfare spending
+	// (fraction of GDP) into a bounded 0..1 effect. See §92.
+	welfare: {
+		referenceIntensity: 0.05
+	},
+
 	technology: {
 		innovationRate: 0.006,
 		diffusionRate: 0.01,

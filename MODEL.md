@@ -3112,4 +3112,24 @@ here so the reasoning is not lost (§37, §80, BLUEPRINT.md §55.12):
 namespace.param: old → new — reason (milestone / seed evidence)
 ```
 
-No entries yet — as of milestone 3, `DEFAULT_MODEL_CONFIG` matches §79 verbatim.
+### Additions (parameters MODEL.md references but §79 omits)
+
+- `economy.prosperityHalfSaturation = 2.0` (M4) — the half-saturation constant
+  named in §12; needed by the prosperity transform at world generation.
+- `food.areaCapacityScale = 330000` (M4) — internal unit scaling so region-area
+  food capacity (§9) produces populations in the §5 range.
+- `welfare.referenceIntensity = 0.05` (M6) — §8/§28/§30 use `welfareEffect` /
+  `welfareIntensity` without a reference; welfare outlay (fraction of GDP) is
+  divided by this to give a bounded 0..1 effect.
+
+### Coefficient changes
+
+None yet — every §79 value is unchanged.
+
+### Observed behaviour
+
+- M6: with technology, education, and prosperity still static (their systems are
+  no-ops until M7/M9), population converges to a Malthusian ceiling near
+  `foodRatio ≈ 0.85` (`foodStress ≈ 0.37`) within ~1.2–1.5× of the starting
+  population — no runaway growth, no collapse. The demographic transition should
+  begin once M7/M9 let prosperity and education rise.
