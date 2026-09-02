@@ -89,7 +89,7 @@ export const DEFAULT_MODEL_CONFIG = {
 	},
 
 	diplomacy: {
-		opinionMeanReversion: 0.01,
+		opinionMeanReversion: 0.02,
 		warMemoryDecay: 0.97,
 		claimDecay: 0.99
 	},

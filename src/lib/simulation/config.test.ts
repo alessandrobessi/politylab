@@ -39,7 +39,7 @@ describe('DEFAULT_MODEL_CONFIG', () => {
 				inequalityMeanReversion: 0.004
 			},
 			military: { depreciation: 0.08, baseCasualtyRate: 0.003 },
-			diplomacy: { opinionMeanReversion: 0.01, warMemoryDecay: 0.97, claimDecay: 0.99 },
+			diplomacy: { opinionMeanReversion: 0.02, warMemoryDecay: 0.97, claimDecay: 0.99 },
 			warfare: {
 				baseWarProbability: 0.12,
 				warThreshold: 0.15,

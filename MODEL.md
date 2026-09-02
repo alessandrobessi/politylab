@@ -3123,6 +3123,20 @@ namespace.param: old → new — reason (milestone / seed evidence)
   divided by this to give a bounded 0..1 effect. §28's `welfareIntensity` term
   is implemented with this bounded `welfareEffect` (0..1) so it is comparable to
   the other 0..1 terms in that formula.
+- `diplomacy.opinionMeanReversion: 0.01 → 0.02` (M12) — once trade became
+  dynamic, the `+0.020·trade` term in §44 (with trade ≈ 0.7 in a peaceful
+  world) drove opinion to +1 for nearly every pair against a 0.01 restoring
+  pull, erasing all polarization. 0.02 restores a spread (opinions ≈ −0.1 to
+  +0.8, mean ≈ 0.5). **Calibration watch:** revisit after M15/M16 — if trade +
+  warm relations suppress wars entirely, `computeTradeScore` (whose components
+  are proxies, below) or this coefficient need further tuning.
+- `computeTradeScore` components (§26, M12) are interpretations of the named
+  factors: `economicCompatibility = prosperityA · prosperityB` (both need
+  surplus); `relationQuality` from the two-way average opinion;
+  `resourceComplementarity` from the mean absolute difference of the two
+  states' region-mean resource profiles (÷0.25); `transportCompatibility` a
+  50/50 blend of transport tech and mean infrastructure. `tradeOpenness` (§27,
+  fed to the §14 TFP bonus) = mean partner trade intensity ÷ 0.40, clamped.
 - Trust (§45): MODEL.md gives drivers but no formula. Implemented (M11) as
   `Δtrust = (0.006·trade + 0.004·alliance + 0.003·peaceFactor)·(1−trust)
   − (0.010·atWar + 0.006·claims + 0.004·threat)·trust`, giving a stable
@@ -3188,8 +3202,15 @@ namespace.param: old → new — reason (milestone / seed evidence)
   disturbance). No government transitions — that is M17.
 - M11: opinions polarize to a structural equilibrium — neighbouring pairs with
   power asymmetry or claims entrench toward −1, distant/compatible pairs sit
-  mildly positive (range ≈ −1.0 to +0.4). Threat perception ≈ 0.05–0.6,
-  strongest between close, hostile, unequal neighbours. Trust is uniformly high
-  (≈ 0.6–0.9) because no war ever breaks it in a pure-peace run; M16 will drop
-  and spread it. All relation fields bounded/finite; the opinion↔threat loop
-  has gain < 1 (converges).
+  mildly positive. Threat perception ≈ 0.05–0.6, strongest between close,
+  hostile, unequal neighbours. Trust is uniformly high (≈ 0.6–0.9) because no
+  war ever breaks it in a pure-peace run; M16 will drop and spread it. All
+  relation fields bounded/finite; the opinion↔threat loop has gain < 1
+  (converges). (Note: M12 raises `opinionMeanReversion`, softening the
+  toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M12: trade grows to a moderate-to-high steady state (mean ≈ 0.7) between
+  developed, reachable, non-belligerent states — trade blocs rather than
+  isolation, given a peaceful millennium with advanced transport. Belligerent
+  pairs go to ~0. Trade feeds the capped (≤15%) TFP bonus, warms relations
+  (§44), and speeds diffusion (§25). Bounded, symmetric, deterministic. Whether
+  this over-suppresses conflict is an open question until wars exist (M15/M16).
