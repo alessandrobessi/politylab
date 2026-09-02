@@ -12,18 +12,10 @@ import { makeConfig } from '../config';
 import { safeDivide } from '../math';
 import type { Region, TerrainType } from '../models/region';
 import type { Relation } from '../models/relation';
-import type { State, TechDomain, TechnologyState, ResearchPriorities } from '../models/state';
-import { TECH_DOMAINS } from '../models/state';
+import type { State } from '../models/state';
 import type { World } from '../models/world';
 import { computeFoodCapacity } from '../systems/food';
-
-function tech(value: number): TechnologyState {
-	return Object.fromEntries(TECH_DOMAINS.map((d) => [d, value])) as TechnologyState;
-}
-
-function priorities(overrides: Partial<Record<TechDomain, number>> = {}): ResearchPriorities {
-	return Object.fromEntries(TECH_DOMAINS.map((d) => [d, overrides[d] ?? 1])) as ResearchPriorities;
-}
+import { priorities, tech } from './tech';
 
 function relation(overrides: Partial<Relation>): Relation {
 	return {

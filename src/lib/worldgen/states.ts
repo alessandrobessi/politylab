@@ -11,6 +11,7 @@ import type {
 } from '../simulation/models/state';
 import { TECH_DOMAINS } from '../simulation/models/state';
 import { computeFoodCapacity } from '../simulation/systems/food';
+import { computeGdp, computeTfp } from '../simulation/systems/production';
 import { distance } from './geometry';
 
 const GOV_TYPES: GovernmentType[] = [
@@ -260,22 +261,17 @@ export function buildStates(
 		const territoryArea = regs.reduce((a, r) => a + r.area, 0);
 
 		// Productivity (MODEL.md §14) → capital → GDP (Cobb–Douglas, MODEL.md §13).
-		const productiveTech =
-			0.2 * technology.agriculture +
-			0.15 * technology.materials +
-			0.2 * technology.energy +
-			0.2 * technology.transport +
-			0.1 * technology.communication +
-			0.15 * technology.institutions;
-		const productivity =
-			(0.6 + 1.4 * productiveTech) *
-			(0.7 + 0.6 * institutionalCapacity) *
-			(0.7 + 0.3 * stability) *
-			(0.75 + 0.5 * meanInfra) *
-			(1 + 0.15 * tradeOpenness);
+		const productivity = computeTfp(
+			technology,
+			institutionalCapacity,
+			stability,
+			meanInfra,
+			tradeOpenness,
+			config
+		);
 
 		const capital = statsRng.range(0.8, 2.5) * population;
-		const gdp = productivity * capital ** alpha * population ** (1 - alpha);
+		const gdp = computeGdp(productivity, capital, population, alpha);
 		const gdpPerCapita = safeDivide(gdp, population);
 		const prosperity = clamp01(gdpPerCapita / (gdpPerCapita + halfSat));
 

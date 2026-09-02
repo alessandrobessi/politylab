@@ -3133,3 +3133,9 @@ None yet — every §79 value is unchanged.
   `foodRatio ≈ 0.85` (`foodStress ≈ 0.37`) within ~1.2–1.5× of the starting
   population — no runaway growth, no collapse. The demographic transition should
   begin once M7/M9 let prosperity and education rise.
+- M7: with technology still static, capital converges to `K/Y ≈ 5` (the
+  `s/δ` ratio plus infrastructure investment), so GDP per capita roughly doubles
+  from its low-capital start (e.g. 0.8 → 1.6) then plateaus; prosperity rises
+  ~0.28 → ~0.45. Bounded and stable — growth → 0 at the steady state.
+  Deferred to a later milestone: economic structure sector shares (§21) and
+  urbanization dynamics (§20), and the optional ±1% economic shock (§67).
