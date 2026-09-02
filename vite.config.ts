@@ -13,7 +13,12 @@ export default defineConfig({
 			// Single fully-prerendered route (see src/routes/+layout.ts); no SPA
 			// fallback needed. Add `fallback: '200.html'` here if client-only routes
 			// are introduced later.
-			adapter: adapter()
+			adapter: adapter(),
+			// Served from a subpath on GitHub Pages (https://<user>.github.io/politylab).
+			// The deploy workflow sets BASE_PATH; local dev/build use the root.
+			paths: {
+				base: process.env.BASE_PATH ?? ''
+			}
 		})
 	],
 	test: {

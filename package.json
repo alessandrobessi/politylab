@@ -31,5 +31,6 @@
 	},
 	"dependencies": {
 		"d3-delaunay": "^6.0.4"
-	}
+	},
+	"packageManager": "pnpm@10.26.1"
 }
