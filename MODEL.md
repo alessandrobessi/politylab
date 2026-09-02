@@ -3120,11 +3120,28 @@ namespace.param: old → new — reason (milestone / seed evidence)
   food capacity (§9) produces populations in the §5 range.
 - `welfare.referenceIntensity = 0.05` (M6) — §8/§28/§30 use `welfareEffect` /
   `welfareIntensity` without a reference; welfare outlay (fraction of GDP) is
-  divided by this to give a bounded 0..1 effect.
+  divided by this to give a bounded 0..1 effect. §28's `welfareIntensity` term
+  is implemented with this bounded `welfareEffect` (0..1) so it is comparable to
+  the other 0..1 terms in that formula.
+- `politics.inequalityMeanReversion = 0.004` (M10) — §28 has no restoring term,
+  so any small constant imbalance in its drivers pushes inequality to a bound
+  over centuries; a mild pull toward 0.40 (following the §29 legitimacy
+  precedent) keeps it in a plausible band. §28's `capitalPressure` and
+  `rapidIndustrialization` inputs are proxies (`clamp01(K/Y ÷ 6)` and
+  `clamp01(max(0, GDP growth) ÷ 0.05)`) pending the deferred §21 structure data.
 
 ### Coefficient changes
 
-None yet — every §79 value is unchanged.
+- `politics.legitimacyMeanReversion: 0.005 → 0.012` (M10) — at 0.005 the
+  persistent Malthusian food stress (§11, `foodStress ≈ 0.37` at equilibrium)
+  applies `−0.020·foodStress ≈ −0.0074`/yr to legitimacy every year, which the
+  0.005 reversion cannot offset, pinning legitimacy at 0 for a majority of
+  states (a degenerate, information-free variable). 0.012 keeps legitimacy
+  non-degenerate (≈ 0.00–0.41, mean ≈ 0.2) while still reflecting chronic food
+  pressure. **Revisit after M27:** the deeper fix is likely urbanization
+  dynamics (§20, currently deferred) lowering birth rates further and thus the
+  food-stress equilibrium; also re-check once war outcomes (M16, ±0.08
+  legitimacy swings) add variety.
 
 ### Observed behaviour
 
@@ -3154,3 +3171,9 @@ None yet — every §79 value is unchanged.
   research budgets — none yet modelled — are expected to spread these out and
   set them back). **Calibration watch:** if Monte Carlo (M27) shows technology
   clustering near the frontier too readily, revisit `technology.innovationRate`.
+- M10: stability converges to ≈ 0.5–0.85, held up mostly by prosperity and
+  institutions; legitimacy settles low (≈ 0.0–0.4) under the persistent
+  Malthusian food-stress drag (see the `legitimacyMeanReversion` note above).
+  Inequality drifts toward ≈ 0.05–0.8 depending on welfare and capital
+  intensity. Bounded, stable, deterministic (seeded ±0.005 stability
+  disturbance). No government transitions — that is M17.

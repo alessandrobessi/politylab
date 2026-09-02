@@ -72,7 +72,15 @@ export const DEFAULT_MODEL_CONFIG = {
 
 		ruptureBaseProbability: 0.08,
 
-		legitimacyMeanReversion: 0.005
+		// MODEL.md §79 value 0.005 → 0.012 (M10). At 0.005 the persistent
+		// Malthusian food stress (§11) pins legitimacy at 0 for a majority of
+		// states, making the variable degenerate. See §92.
+		legitimacyMeanReversion: 0.012,
+
+		// Not in MODEL.md §79. Follows the §29 legitimacy precedent: a mild pull
+		// toward the middle so inequality (§28, which has no restoring term) does
+		// not drift to a bound over centuries. See §92.
+		inequalityMeanReversion: 0.004
 	},
 
 	military: {

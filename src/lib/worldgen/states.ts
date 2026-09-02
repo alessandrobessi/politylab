@@ -11,6 +11,7 @@ import type {
 } from '../simulation/models/state';
 import { TECH_DOMAINS } from '../simulation/models/state';
 import { computeFoodCapacity } from '../simulation/systems/food';
+import { computeDesiredParticipation, computeEliteConflict } from '../simulation/systems/politics';
 import { computeGdp, computeTfp } from '../simulation/systems/production';
 import { distance } from './geometry';
 
@@ -299,24 +300,11 @@ export function buildStates(
 			(0.6 + 0.2 * technology.transport + 0.2 * meanInfra) *
 			(0.7 + 0.3 * stability);
 
-		const desiredParticipation = clamp01(
-			0.1 +
-				0.35 * education +
-				0.25 * urbanization +
-				0.15 * factions.merchant +
-				0.15 * factions.worker
+		const participationGap = Math.max(
+			0,
+			computeDesiredParticipation(education, urbanization, factions) - politicalParticipation
 		);
-		const participationGap = Math.max(0, desiredParticipation - politicalParticipation);
-		const dominantFaction = Math.max(
-			factions.elite,
-			factions.merchant,
-			factions.military,
-			factions.worker
-		);
-		const polarization = clamp01(
-			0.4 * participationGap + 0.3 * factions.military + 0.3 * inequality
-		);
-		const eliteConflict = clamp01(polarization * (1 - dominantFaction));
+		const eliteConflict = computeEliteConflict(participationGap, factions, inequality);
 
 		states.push({
 			id,
