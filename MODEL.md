@@ -3098,3 +3098,18 @@ after inspection.
 ```
 
 When forced to choose between complexity and interpretability, prefer interpretability for v0.1.
+
+---
+
+# 92. Calibration Changelog
+
+Every coefficient in `src/lib/simulation/config.ts` (`DEFAULT_MODEL_CONFIG`)
+starts at the value given in §79 and the sections above. When a value is changed
+because Monte Carlo batches or playtests reveal a pathology (§77–§78), record it
+here so the reasoning is not lost (§37, §80, BLUEPRINT.md §55.12):
+
+```text
+namespace.param: old → new — reason (milestone / seed evidence)
+```
+
+No entries yet — as of milestone 3, `DEFAULT_MODEL_CONFIG` matches §79 verbatim.
