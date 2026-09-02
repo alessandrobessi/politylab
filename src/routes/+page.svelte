@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { generateWorld } from '$lib/worldgen';
+	import { onDestroy } from 'svelte';
+	import { SimulationController } from '$lib/stores/simulation.svelte';
 
-	const INITIAL_SEED = 481204;
-	let seed = $state(INITIAL_SEED);
-	let world = $state(generateWorld(INITIAL_SEED));
+	const sim = new SimulationController();
+	onDestroy(() => sim.dispose());
 
-	function regenerate() {
-		world = generateWorld(seed);
-	}
+	let seedInput = $state(sim.seed);
 
 	const millions = (n: number) => (n / 1_000_000).toFixed(2) + 'M';
 	const techAvg = (t: Record<string, number>) => {
@@ -17,35 +15,33 @@
 	const fill = (hue: number) => `hsl(${hue.toFixed(0)} 55% 55%)`;
 	const pointsOf = (polygon: readonly (readonly [number, number])[]) =>
 		polygon.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-
 	const ownerHue = (ownerId: string | null) =>
-		world.states.find((s) => s.id === ownerId)?.colorHue ?? 0;
+		sim.world.states.find((s) => s.id === ownerId)?.colorHue ?? 0;
 </script>
 
 <main>
-	<h1>PolityLab</h1>
-	<p class="tagline">
-		Milestone 4 — procedural world generator. Diagnostic view: Voronoi regions coloured by owning
-		state.
-	</p>
+	<header>
+		<div class="year">YEAR {sim.year}</div>
+		<div class="speeds">
+			<button class:active={!sim.running} onclick={() => sim.pause()}>Pause</button>
+			<button class:active={sim.speed === 1} onclick={() => sim.setSpeed(1)}>1×</button>
+			<button class:active={sim.speed === 5} onclick={() => sim.setSpeed(5)}>5×</button>
+			<button onclick={() => sim.step()} disabled={sim.running}>Step</button>
+		</div>
+		<form
+			class="seed"
+			onsubmit={(e) => {
+				e.preventDefault();
+				sim.regenerate(seedInput);
+			}}
+		>
+			<label>Seed <input type="number" bind:value={seedInput} /></label>
+			<button type="submit">Generate</button>
+		</form>
+	</header>
 
-	<form
-		class="controls"
-		onsubmit={(e) => {
-			e.preventDefault();
-			regenerate();
-		}}
-	>
-		<label>
-			Seed
-			<input type="number" bind:value={seed} />
-		</label>
-		<button type="submit">Generate</button>
-		<span class="meta">{world.states.length} states · {world.regions.length} regions</span>
-	</form>
-
-	<svg viewBox="0 0 {world.width} {world.height}" role="img" aria-label="Generated world map">
-		{#each world.regions as region (region.id)}
+	<svg viewBox="0 0 {sim.world.width} {sim.world.height}" role="img" aria-label="World map">
+		{#each sim.world.regions as region (region.id)}
 			<polygon
 				points={pointsOf(region.polygon)}
 				fill={fill(ownerHue(region.ownerId))}
@@ -53,8 +49,8 @@
 				stroke-width="0.75"
 			/>
 		{/each}
-		{#each world.states as state (state.id)}
-			{@const r = world.regions.find((rr) => rr.ownerId === state.id)}
+		{#each sim.world.states as state (state.id)}
+			{@const r = sim.world.regions.find((rr) => rr.ownerId === state.id)}
 			{#if r}
 				<text
 					x={r.site[0]}
@@ -81,11 +77,11 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each world.states as state (state.id)}
+			{#each sim.world.states as state (state.id)}
 				<tr>
 					<td><span class="swatch" style:background={fill(state.colorHue)}></span>{state.name}</td>
 					<td>{state.politics.governmentType}</td>
-					<td>{world.regions.filter((r) => r.ownerId === state.id).length}</td>
+					<td>{sim.world.regions.filter((r) => r.ownerId === state.id).length}</td>
 					<td>{millions(state.population)}</td>
 					<td>{state.gdpPerCapita.toFixed(2)}</td>
 					<td>{techAvg(state.technology)}</td>
@@ -95,6 +91,11 @@
 			{/each}
 		</tbody>
 	</table>
+
+	<p class="note">
+		Milestone 5 — the clock runs and history is recorded, but every simulation system is still a
+		no-op, so only the year advances.
+	</p>
 </main>
 
 <style>
@@ -107,30 +108,48 @@
 			-apple-system,
 			sans-serif;
 	}
-	h1 {
-		margin: 0 0 0.25rem;
-	}
-	.tagline {
-		margin: 0 0 1rem;
-		color: #555;
-	}
-	.controls {
+	header {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 1.5rem;
+		flex-wrap: wrap;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid #ddd;
 		margin-bottom: 1rem;
 	}
-	.controls label {
+	.year {
+		font-size: 1.4rem;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+	}
+	.speeds {
 		display: flex;
-		gap: 0.4rem;
+		gap: 0.35rem;
+	}
+	button {
+		padding: 0.3rem 0.7rem;
+		border: 1px solid #bbb;
+		background: #f6f6f6;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+	button.active {
+		background: #2b6cb0;
+		border-color: #2b6cb0;
+		color: #fff;
+	}
+	button:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+	.seed {
+		display: flex;
 		align-items: center;
+		gap: 0.5rem;
+		margin-left: auto;
 	}
-	.controls input {
+	.seed input {
 		width: 9rem;
-	}
-	.meta {
-		color: #666;
-		font-size: 0.9rem;
 	}
 	svg {
 		width: 100%;
@@ -158,5 +177,10 @@
 		border-radius: 2px;
 		margin-right: 0.4rem;
 		vertical-align: middle;
+	}
+	.note {
+		color: #666;
+		font-size: 0.85rem;
+		margin-top: 1rem;
 	}
 </style>

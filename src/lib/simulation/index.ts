@@ -6,3 +6,5 @@ export type { SimulationConfig, DeepPartial } from './config';
 export { CauseSet } from './events/causes';
 export type { Cause, Explained } from './events/causes';
 export { assertFiniteWorld, WorldInvariantError } from './assert';
+export { simulateYear, simulateYears, createSimulation } from './engine';
+export type { SimContext, SimulateOptions, Simulation } from './engine';
