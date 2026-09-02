@@ -3146,3 +3146,11 @@ None yet — every §79 value is unchanged.
   begins pulling birth rates down (the demographic transition). Bounded and
   stable over 1,000 years. Debt interest/servicing (§39) still deferred to M16
   alongside war deficits; budgets are static until strategic decisions (M15).
+- M9: technology advances from ≈ 0.2 to ≈ 0.80–0.87 over 1,000 years, with a
+  small inter-state spread (≈ 0.07–0.11) — domestic innovation dominates and
+  diffusion narrows the rest. Compounding into TFP and food capacity, this lifts
+  GDP per capita to ≈ 5–9 and populations to ≈ 3–9M by year 1000 (a full
+  millennium of uninterrupted development; wars, instability, and varied
+  research budgets — none yet modelled — are expected to spread these out and
+  set them back). **Calibration watch:** if Monte Carlo (M27) shows technology
+  clustering near the frontier too readily, revisit `technology.innovationRate`.

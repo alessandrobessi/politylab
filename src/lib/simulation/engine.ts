@@ -12,10 +12,10 @@
 
 import { assertFiniteWorld } from './assert';
 import type { SimContext } from './context';
-import { mean } from './math';
 import { createHistory, type StateYearStats, type WorldHistory } from './models/history';
 import type { World } from './models/world';
 import { SeededRandom } from './rng';
+import { technologyIndex } from './systems/technology';
 import { TraceSink } from './trace';
 
 import { updateEnvironment } from './systems/environment';
@@ -93,7 +93,7 @@ function recordStatistics(world: World, history: WorldHistory, traces: TraceSink
 			population: s.population,
 			gdp: s.gdp,
 			gdpPerCapita: s.gdpPerCapita,
-			technologyIndex: mean(Object.values(s.technology)),
+			technologyIndex: technologyIndex(s.technology),
 			stability: s.politics.stability,
 			legitimacy: s.politics.legitimacy,
 			militaryPower: s.military.power,
