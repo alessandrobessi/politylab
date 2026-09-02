@@ -3123,6 +3123,15 @@ namespace.param: old → new — reason (milestone / seed evidence)
   divided by this to give a bounded 0..1 effect. §28's `welfareIntensity` term
   is implemented with this bounded `welfareEffect` (0..1) so it is comparable to
   the other 0..1 terms in that formula.
+- Trust (§45): MODEL.md gives drivers but no formula. Implemented (M11) as
+  `Δtrust = (0.006·trade + 0.004·alliance + 0.003·peaceFactor)·(1−trust)
+  − (0.010·atWar + 0.006·claims + 0.004·threat)·trust`, giving a stable
+  relationship-quality equilibrium in (0, 1). `peaceFactor` ramps 0→1 over 30
+  years since the last war ended (1 if never at war).
+- Diffusion / diplomacy proxies (M11): `commonEnemy` = max over third parties of
+  `min(threat i→k, threat j→k)`; `expansionismSignal` in the threat formula
+  (§48) = the other state's territorial claim on this one (a full
+  expansionism model waits on war-declaration history).
 - `politics.inequalityMeanReversion = 0.004` (M10) — §28 has no restoring term,
   so any small constant imbalance in its drivers pushes inequality to a bound
   over centuries; a mild pull toward 0.40 (following the §29 legitimacy
@@ -3177,3 +3186,10 @@ namespace.param: old → new — reason (milestone / seed evidence)
   Inequality drifts toward ≈ 0.05–0.8 depending on welfare and capital
   intensity. Bounded, stable, deterministic (seeded ±0.005 stability
   disturbance). No government transitions — that is M17.
+- M11: opinions polarize to a structural equilibrium — neighbouring pairs with
+  power asymmetry or claims entrench toward −1, distant/compatible pairs sit
+  mildly positive (range ≈ −1.0 to +0.4). Threat perception ≈ 0.05–0.6,
+  strongest between close, hostile, unequal neighbours. Trust is uniformly high
+  (≈ 0.6–0.9) because no war ever breaks it in a pure-peace run; M16 will drop
+  and spread it. All relation fields bounded/finite; the opinion↔threat loop
+  has gain < 1 (converges).

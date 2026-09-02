@@ -11,6 +11,7 @@ import type {
 } from '../simulation/models/state';
 import { TECH_DOMAINS } from '../simulation/models/state';
 import { computeFoodCapacity } from '../simulation/systems/food';
+import { graphDistances, proximityFromDistance } from '../simulation/systems/geography';
 import { computeDesiredParticipation, computeEliteConflict } from '../simulation/systems/politics';
 import { computeGdp, computeTfp } from '../simulation/systems/production';
 import { distance } from './geometry';
@@ -135,32 +136,6 @@ export function assignTerritory(
 	}
 
 	return { ownerByRegion, regionsByState, adjacency };
-}
-
-/** Breadth-first hop distance between every pair of states over `adjacency`. */
-function stateDistances(
-	stateIds: string[],
-	adjacency: Map<string, Set<string>>
-): Map<string, Map<string, number>> {
-	const all = new Map<string, Map<string, number>>();
-	for (const start of stateIds) {
-		const dist = new Map<string, number>([[start, 0]]);
-		let frontier = [start];
-		while (frontier.length > 0) {
-			const next: string[] = [];
-			for (const node of frontier) {
-				for (const neighbor of adjacency.get(node) ?? []) {
-					if (!dist.has(neighbor)) {
-						dist.set(neighbor, dist.get(node)! + 1);
-						next.push(neighbor);
-					}
-				}
-			}
-			frontier = next;
-		}
-		all.set(start, dist);
-	}
-	return all;
 }
 
 function rollTechnology(rng: SeededRandom): TechnologyState {
@@ -386,14 +361,14 @@ function initRelations(
 ): void {
 	const relRng = rng.fork('relations');
 	const ids = states.map((s) => s.id);
-	const distances = stateDistances(ids, adjacency);
+	const distances = graphDistances(ids, adjacency);
 
 	for (let i = 0; i < states.length; i++) {
 		for (let j = i + 1; j < states.length; j++) {
 			const a = states[i]!;
 			const b = states[j]!;
 			const d = distances.get(a.id)?.get(b.id) ?? Infinity;
-			const proximity = Number.isFinite(d) ? clamp01(Math.exp(-0.7 * (d - 1))) : 0;
+			const proximity = proximityFromDistance(d);
 			const neighbors = d === 1;
 
 			const opinion = relRng.range(-0.2, 0.2);
