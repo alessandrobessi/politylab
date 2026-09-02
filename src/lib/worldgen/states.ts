@@ -277,6 +277,14 @@ export function buildStates(
 
 		const taxEfficiency = 0.45 + 0.55 * institutionalCapacity;
 		const revenue = gdp * taxRate * taxEfficiency;
+		const spending: State['spending'] = {
+			infrastructure: budget.infrastructure * revenue,
+			education: budget.education * revenue,
+			research: budget.research * revenue,
+			military: budget.military * revenue,
+			welfare: budget.welfare * revenue,
+			administration: budget.administration * revenue
+		};
 		const treasury = statsRng.range(0, 0.5) * revenue;
 		const debt = statsRng.range(0, 0.4) * gdp;
 		const debtRatio = safeDivide(debt, gdp);
@@ -332,6 +340,8 @@ export function buildStates(
 			growth: { gdp: 0, gdpPerCapita: 0, population: 0 },
 			economicStress: 0,
 
+			revenue,
+			spending,
 			treasury,
 			debt,
 			debtRatio,

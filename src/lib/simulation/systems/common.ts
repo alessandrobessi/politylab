@@ -24,6 +24,11 @@ export function revenueFraction(state: State): number {
 	return state.taxRate * (0.45 + 0.55 * state.politics.institutionalCapacity);
 }
 
+/** Government revenue in absolute units (MODEL.md §16). Defaults to `state.gdp`. */
+export function revenue(state: State, gdp: number = state.gdp): number {
+	return gdp * revenueFraction(state);
+}
+
 /** Welfare outlay as a fraction of GDP (budget share × revenue fraction). */
 export function welfareIntensity(state: State): number {
 	return state.budget.welfare * revenueFraction(state);

@@ -3139,3 +3139,10 @@ None yet — every §79 value is unchanged.
   ~0.28 → ~0.45. Bounded and stable — growth → 0 at the steady state.
   Deferred to a later milestone: economic structure sector shares (§21) and
   urbanization dynamics (§20), and the optional ±1% economic shock (§67).
+- M8: with the default budget, region infrastructure converges to ≈ 0.65–0.80
+  and education to ≈ 0.60–0.80 (higher with more institutional capacity, §19).
+  Both raise TFP and — via infrastructure — food capacity, lifting GDP per
+  capita to ≈ 1.4–3.3 and populations to ≈ 1.3–5M while the rising education
+  begins pulling birth rates down (the demographic transition). Bounded and
+  stable over 1,000 years. Debt interest/servicing (§39) still deferred to M16
+  alongside war deficits; budgets are static until strategic decisions (M15).

@@ -56,7 +56,11 @@ export function assertFiniteWorld(world: World): void {
 		nonNegative(state.territory, `${at}.territory`);
 		nonNegative(state.capital, `${at}.capital`);
 		nonNegative(state.gdp, `${at}.gdp`);
+		nonNegative(state.revenue, `${at}.revenue`);
 		nonNegative(state.foodCapacity, `${at}.foodCapacity`);
+		for (const [line, amount] of Object.entries(state.spending)) {
+			nonNegative(amount, `${at}.spending.${line}`);
+		}
 		finite(state.gdpPerCapita, `${at}.gdpPerCapita`);
 		finite(state.productivity, `${at}.productivity`);
 		finite(state.treasury, `${at}.treasury`);

@@ -2,7 +2,7 @@ import type { SimContext } from '../context';
 import { CauseSet } from '../events/causes';
 import { clamp01, finiteOrFallback, safeDivide } from '../math';
 import type { World } from '../models/world';
-import { regionsByOwner, revenueFraction } from './common';
+import { regionsByOwner, revenue } from './common';
 import { accumulateCapital, computeGdp, computeTfp } from './production';
 
 /**
@@ -45,8 +45,7 @@ export function updateProduction(world: World, ctx: SimContext): void {
 		const gdpPerCapita = safeDivide(gdp, state.population, 0);
 		const prosperity = clamp01(gdpPerCapita / (gdpPerCapita + halfSaturation));
 
-		const revenue = gdp * revenueFraction(state);
-		const infrastructureInvestment = state.budget.infrastructure * revenue;
+		const infrastructureInvestment = state.budget.infrastructure * revenue(state, gdp);
 		const warCapitalDamage = 0; // milestone 16
 
 		const nextCapital = finiteOrFallback(

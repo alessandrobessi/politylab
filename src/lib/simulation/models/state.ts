@@ -58,6 +58,9 @@ export interface GovernmentBudget {
 	administration: number;
 }
 
+/** Absolute annual spending per budget line (`budget` share × revenue). */
+export type GovernmentSpending = Record<keyof GovernmentBudget, number>;
+
 /** Aggregate power-bloc influence; shares sum to 1 (MODEL.md §33). */
 export interface FactionInfluence {
 	elite: number;
@@ -145,6 +148,10 @@ export interface State {
 	/** clamp01(−realGdpPerCapitaGrowth / 0.10), derived (MODEL.md §31). */
 	economicStress: number;
 
+	/** Government revenue this year: gdp × taxRate × tax efficiency (MODEL.md §16). */
+	revenue: number;
+	/** Absolute spending per budget line this year (MODEL.md §17). */
+	spending: GovernmentSpending;
 	treasury: number;
 	debt: number;
 	/** debt / gdp, derived (MODEL.md §40). */

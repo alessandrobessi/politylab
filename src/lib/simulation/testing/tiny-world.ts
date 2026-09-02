@@ -135,7 +135,17 @@ function makeState(
 	const gdpPerCapita = safeDivide(seed.gdp, population);
 	const debtRatio = safeDivide(seed.debt, seed.gdp);
 	const debtStress = Math.max(0, Math.min(1, (debtRatio - 0.5) / 1.5));
-	const militarySpending = seed.budget.military * seed.gdp * seed.taxRate;
+
+	const revenue = seed.gdp * seed.taxRate * (0.45 + 0.55 * seed.institutionalCapacity);
+	const spending: State['spending'] = {
+		infrastructure: seed.budget.infrastructure * revenue,
+		education: seed.budget.education * revenue,
+		research: seed.budget.research * revenue,
+		military: seed.budget.military * revenue,
+		welfare: seed.budget.welfare * revenue,
+		administration: seed.budget.administration * revenue
+	};
+	const militarySpending = spending.military;
 
 	return {
 		id: seed.id,
@@ -159,6 +169,8 @@ function makeState(
 		growth: { gdp: 0, gdpPerCapita: 0, population: 0 },
 		economicStress: 0,
 
+		revenue,
+		spending,
 		treasury: seed.treasury,
 		debt: seed.debt,
 		debtRatio,

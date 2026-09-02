@@ -9,6 +9,7 @@ export type {
 	ResearchPriorities,
 	EconomicStructure,
 	GovernmentBudget,
+	GovernmentSpending,
 	FactionInfluence,
 	PoliticsState,
 	MilitaryState,
