@@ -2,6 +2,10 @@ import { defineConfig } from 'vitest/config';
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 
+const rawBase = process.env.BASE_PATH?.replace(/\/+$/, '');
+const basePath: '' | `/${string}` =
+	rawBase && rawBase.startsWith('/') ? (rawBase as `/${string}`) : '';
+
 export default defineConfig({
 	plugins: [
 		sveltekit({
@@ -16,9 +20,7 @@ export default defineConfig({
 			adapter: adapter(),
 			// Served from a subpath on GitHub Pages (https://<user>.github.io/politylab).
 			// The deploy workflow sets BASE_PATH; local dev/build use the root.
-			paths: {
-				base: process.env.BASE_PATH ?? ''
-			}
+			paths: { base: basePath }
 		})
 	],
 	test: {
