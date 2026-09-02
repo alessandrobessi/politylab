@@ -29,7 +29,16 @@ export const DEFAULT_MODEL_CONFIG = {
 		privateInvestmentRate: 0.18,
 		capitalDepreciation: 0.04,
 
-		maxTradeProductivityBonus: 0.15
+		maxTradeProductivityBonus: 0.15,
+
+		// MODEL.md §12 names this default; not in the §79 list. See §92.
+		prosperityHalfSaturation: 2.0
+	},
+
+	// Not in MODEL.md §79. Internal unit scaling so region-area food capacity
+	// (MODEL.md §9) yields populations in the MODEL.md §5 range. See §92.
+	food: {
+		areaCapacityScale: 330000
 	},
 
 	education: {
