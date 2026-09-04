@@ -12,6 +12,7 @@ import type {
 import { TECH_DOMAINS } from '../simulation/models/state';
 import { computeFoodCapacity } from '../simulation/systems/food';
 import { graphDistances, proximityFromDistance } from '../simulation/systems/geography';
+import { computeMilitaryPower } from '../simulation/systems/military';
 import { computeDesiredParticipation, computeEliteConflict } from '../simulation/systems/politics';
 import { computeGdp, computeTfp } from '../simulation/systems/production';
 import { distance } from './geometry';
@@ -268,12 +269,14 @@ export function buildStates(
 
 		const militarySpending = budget.military * revenue;
 		const militaryCapital = statsRng.range(1.5, 6) * militarySpending;
-		const militaryPower =
-			Math.sqrt(militaryCapital) *
-			population ** 0.25 *
-			(0.5 + technology.military) *
-			(0.6 + 0.2 * technology.transport + 0.2 * meanInfra) *
-			(0.7 + 0.3 * stability);
+		const militaryPower = computeMilitaryPower(
+			militaryCapital,
+			population,
+			technology.military,
+			technology.transport,
+			meanInfra,
+			stability
+		);
 
 		const participationGap = Math.max(
 			0,

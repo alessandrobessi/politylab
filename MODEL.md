@@ -3130,6 +3130,10 @@ namespace.param: old → new — reason (milestone / seed evidence)
   +0.8, mean ≈ 0.5). **Calibration watch:** revisit after M15/M16 — if trade +
   warm relations suppress wars entirely, `computeTradeScore` (whose components
   are proxies, below) or this coefficient need further tuning.
+- Military political cost (§43, M14): "additional political cost above ~8% of
+  GDP" is applied as a `militaryBurdenStress = clamp01((burden − 0.08) / 0.15)`
+  term (weight 0.08) added to the regime-stress sum in §30 — so an over-armed
+  state is less stable, on top of the opportunity cost of the spending itself.
 - Alliances (§49, M13): formation rate 0.10 and the `sigmoid(·×10)` shape are
   from MODEL.md; `allianceThreshold` is raised 0.65 → 0.78 and mirror break
   parameters added (`allianceBreakRate 0.08`, `allianceBreakThreshold 0.68`)
@@ -3218,6 +3222,13 @@ namespace.param: old → new — reason (milestone / seed evidence)
   relation fields bounded/finite; the opinion↔threat loop has gain < 1
   (converges). (Note: M12 raises `opinionMeanReversion`, softening the
   toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M14: military power becomes dynamic. Capital accumulates from the military
+  budget line toward `spending ÷ depreciation`, so power grows with the economy
+  (≈ 40× over 1,000 years as GDP grows) while inter-state power ratios stay
+  moderate (max/min ≈ 2.5–4). With the default budget, burden is 3–5% of GDP —
+  under the §43 threshold, so no burden stress yet; the guns-vs-butter and
+  arms-race dynamics show up only when budgets shift (M15). Bounded, finite,
+  deterministic. **Phase 3 (international systems) complete.**
 - M13: alliances emerge from incentives, not scripts — ≈ 4–11 of 28 pairs
   allied at year 1000, driven mostly by shared-threat (`commonThreat`, weight
   0.30). Balance of power works: making one state militarily dominant raises

@@ -56,14 +56,18 @@ export function computeSupport(
 	);
 }
 
-/** Regime stress (MODEL.md §30). */
+/**
+ * Regime stress (MODEL.md §30). The `militaryBurdenStress` term is the political
+ * cost of military spending above ~8% of GDP (MODEL.md §43).
+ */
 export function computeStress(
 	inequality: number,
 	foodStress: number,
 	warExhaustion: number,
 	economicStress: number,
 	debtStress: number,
-	eliteConflict: number
+	eliteConflict: number,
+	militaryBurdenStress = 0
 ): number {
 	return (
 		0.22 * inequality +
@@ -71,7 +75,8 @@ export function computeStress(
 		0.2 * warExhaustion +
 		0.16 * economicStress +
 		0.1 * debtStress +
-		0.1 * eliteConflict
+		0.1 * eliteConflict +
+		0.08 * militaryBurdenStress
 	);
 }
 
@@ -130,13 +135,15 @@ export function updatePolitics(world: World, ctx: SimContext): void {
 			state.prosperity,
 			welfare
 		);
+		const militaryBurdenStress = clamp01((state.military.burden - 0.08) / 0.15);
 		const stress = computeStress(
 			state.inequality,
 			state.foodStress,
 			state.warExhaustion,
 			state.economicStress,
 			state.debtStress,
-			p.eliteConflict
+			p.eliteConflict,
+			militaryBurdenStress
 		);
 		const targetStability = clamp01(0.5 + support - stress);
 		p.stability = clamp01(
@@ -155,6 +162,7 @@ export function updatePolitics(world: World, ctx: SimContext): void {
 			stabilityCauses.add('economic_stress', -0.16 * state.economicStress, state.economicStress);
 			stabilityCauses.add('debt_stress', -0.1 * state.debtStress, state.debtStress);
 			stabilityCauses.add('elite_conflict', -0.1 * p.eliteConflict, p.eliteConflict);
+			stabilityCauses.add('military_burden', -0.08 * militaryBurdenStress, state.military.burden);
 			ctx.traces.record(state.id, 'stability', stabilityCauses.list());
 
 			const legitimacyCauses = new CauseSet();

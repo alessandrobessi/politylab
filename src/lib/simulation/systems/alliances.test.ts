@@ -106,7 +106,11 @@ describe('balance of power (MODEL.md §50, acceptance)', () => {
 	/** Alliance-years accumulated among the non-hegemon states over `years`. */
 	function nonHegemonAllianceYears(seed: number, hegemon: boolean, years: number): number {
 		const world = generateWorld(seed);
-		if (hegemon) world.states[0]!.military.power *= 8;
+		if (hegemon) {
+			// A huge capital stock stays dominant for the test window even as
+			// `updateMilitary` depreciates it toward the normal level.
+			world.states[0]!.military.capital *= 1e6;
+		}
 		let total = 0;
 		for (let y = 0; y < years; y++) {
 			simulateYears(world, 1);
