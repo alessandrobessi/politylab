@@ -51,7 +51,7 @@ describe('DEFAULT_MODEL_CONFIG', () => {
 			},
 			warfare: {
 				baseWarProbability: 0.08,
-				warThreshold: 0.2,
+				warThreshold: 0.25,
 				baseEconomicDamage: 0.01,
 				peaceExhaustionDecay: 0.92,
 				baseInterestRate: 0.03
@@ -80,7 +80,7 @@ describe('makeConfig', () => {
 		expect(cfg.technology.innovationRate).toBe(0.006);
 		expect(cfg.technology.maxAnnualDiffusion).toBe(0.02);
 		expect(cfg.warfare.baseWarProbability).toBe(0.2);
-		expect(cfg.warfare.warThreshold).toBe(0.2);
+		expect(cfg.warfare.warThreshold).toBe(0.25);
 		// untouched namespaces are intact
 		expect(cfg.population.baseBirthRate).toBe(0.03);
 	});

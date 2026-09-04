@@ -122,9 +122,9 @@ function warUtility(
 	const advantage = clamp01(safeDivide(a.military.power, a.military.power + defenderPower, 0.5));
 
 	const inputs: WarTargetInputs = {
-		territorialValue: clamp01(0.3 + 0.7 * meanAgri),
-		resourceValue: clamp01(meanResources),
-		strategicValue: clamp01(0.4 * rel.proximity + 0.6 * rel.borderTension),
+		territorialValue: clamp01(0.15 + 0.6 * meanAgri),
+		resourceValue: clamp01(0.7 * meanResources),
+		strategicValue: clamp01(0.3 * rel.proximity + 0.5 * rel.borderTension),
 		claimValue: rel.territorialClaims,
 		domesticPoliticalBenefit: clamp01(
 			(0.55 - a.politics.stability) * 0.7 + (0.5 - a.politics.legitimacy) * 0.5
@@ -197,7 +197,9 @@ export function makeStrategicDecisions(world: World, ctx: SimContext): void {
 			const stabilityGate = clamp01(a.politics.stability / 0.2);
 			const militaryGate = clamp01(inputs.perceivedMilitaryAdvantage / 0.25);
 			const overextensionGate = clamp01((1 - a.overextension) / 0.5);
-			const gates = stabilityGate * militaryGate * overextensionGate;
+			// Recent belligerents are war-weary and slow to re-open hostilities.
+			const memoryGate = 1 - 0.85 * rel.warMemory;
+			const gates = stabilityGate * militaryGate * overextensionGate * memoryGate;
 
 			const pWar =
 				cfg.baseWarProbability * sigmoid((utility - cfg.warThreshold) * 8) * clamp01(gates);

@@ -3169,6 +3169,13 @@ namespace.param: old → new — reason (milestone / seed evidence)
 
 ### Coefficient changes
 
+- War-frequency pass after M18 (Phase 4 gate): `warfare.warThreshold 0.20 → 0.25`;
+  `scoreWarTarget` `territorialValue` 0.3+0.7·agri → 0.15+0.6·agri, `resourceValue`
+  ×0.7, `strategicValue` 0.4·prox+0.6·tension → 0.3·prox+0.5·tension; and a new
+  `memoryGate = 1 − 0.85·warMemory` on `pWar` so recent belligerents don't
+  immediately re-declare. Result: ~50–80 wars per 1,000 years (a war every
+  ~15 years), 7–8 of 8 states surviving, largest empire 17–38%. The event feed
+  now reads as varied history rather than a war ticker.
 - `warfare.baseWarProbability: 0.12 → 0.08` (M16) and territorial-capture
   probability factor 0.4 → 0.25 — once real casualties/economic damage/territory
   loss were in, the M15 frequency ground weak states down: 2–4 of 8 survived and
