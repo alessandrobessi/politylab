@@ -164,14 +164,77 @@ describe('long-run political behaviour', () => {
 				expect(s.politics.legitimacy).toBeLessThanOrEqual(1);
 				expect(s.politics.stability).toBeGreaterThanOrEqual(0);
 				expect(s.politics.stability).toBeLessThanOrEqual(1);
-				// no government transitions yet (M17)
-				expect(s.politics.governmentType).toBe(
-					generateWorld(seed).states.find((g) => g.id === s.id)!.politics.governmentType
-				);
 			}
 			const stable = world.states.filter((s) => s.politics.stability > 0.3);
 			expect(stable.length).toBeGreaterThan(0);
 			expect(() => assertFiniteWorld(world)).not.toThrow();
 		}
+	});
+});
+
+describe('government transitions (MODEL.md §35–§37, acceptance)', () => {
+	it('a troubled state does NOT transition every year', () => {
+		const world = makeTinyWorld();
+		const s = world.states[0]!;
+		s.politics.stability = 0.15;
+		s.politics.legitimacy = 0.1;
+		s.politics.participationGap = 0.6;
+		let transitions = 0;
+		let prev = s.politics.governmentType;
+		for (let y = 0; y < 200; y++) {
+			s.politics.stability = 0.15;
+			s.politics.legitimacy = 0.1;
+			updatePolitics(world, context({ year: y, rng: new SeededRandom(y) }));
+			if (s.politics.governmentType !== prev) {
+				transitions++;
+				prev = s.politics.governmentType;
+			}
+		}
+		expect(transitions).toBeGreaterThan(0); // some do happen
+		expect(transitions).toBeLessThan(60); // but not ~every year over 200
+	});
+
+	it('a stable, legitimate state rarely transitions', () => {
+		const world = makeTinyWorld();
+		const s = world.states[0]!;
+		let transitions = 0;
+		let prev = s.politics.governmentType;
+		for (let y = 0; y < 300; y++) {
+			s.politics.stability = 0.85;
+			s.politics.legitimacy = 0.8;
+			updatePolitics(world, context({ year: y, rng: new SeededRandom(y) }));
+			if (s.politics.governmentType !== prev) {
+				transitions++;
+				prev = s.politics.governmentType;
+			}
+		}
+		expect(transitions).toBeLessThan(5);
+	});
+
+	it('produces a spread of government types across seeds — none dominates (MODEL §77)', () => {
+		const counts = new Map<string, number>();
+		for (const seed of [1, 2, 3, 5, 7, 11, 17, 42, 99, 481204]) {
+			const world = generateWorld(seed);
+			simulateYears(world, 800);
+			for (const s of world.states.filter((x) => x.alive)) {
+				counts.set(s.politics.governmentType, (counts.get(s.politics.governmentType) ?? 0) + 1);
+			}
+		}
+		const total = [...counts.values()].reduce((a, b) => a + b, 0);
+		expect(counts.size).toBeGreaterThanOrEqual(3);
+		expect(Math.max(...counts.values()) / total).toBeLessThan(0.7);
+	});
+});
+
+describe('overextension (MODEL.md §38)', () => {
+	it('a state far larger than its administrative capacity is overextended and less stable', () => {
+		const world = generateWorld(7);
+		const big = world.states[0]!;
+		// Give it 4× everyone else's territory without extra capacity.
+		big.territory *= 4;
+		updatePolitics(world, context());
+		expect(big.overextension).toBeGreaterThan(0.3);
+		const small = world.states[1]!;
+		expect(small.overextension).toBeLessThan(big.overextension);
 	});
 });

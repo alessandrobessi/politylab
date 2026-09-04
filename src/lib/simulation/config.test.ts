@@ -36,7 +36,8 @@ describe('DEFAULT_MODEL_CONFIG', () => {
 				stabilityAdjustmentRate: 0.15,
 				ruptureBaseProbability: 0.08,
 				legitimacyMeanReversion: 0.012,
-				inequalityMeanReversion: 0.004
+				inequalityMeanReversion: 0.004,
+				factionAdjustmentRate: 0.05
 			},
 			military: { depreciation: 0.08, baseCasualtyRate: 0.003 },
 			diplomacy: {

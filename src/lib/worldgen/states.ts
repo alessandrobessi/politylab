@@ -14,19 +14,9 @@ import { computeFoodCapacity } from '../simulation/systems/food';
 import { graphDistances, proximityFromDistance } from '../simulation/systems/geography';
 import { computeMilitaryPower } from '../simulation/systems/military';
 import { computeDesiredParticipation, computeEliteConflict } from '../simulation/systems/politics';
+import { classifyGovernment } from '../simulation/strategy/classify';
 import { computeGdp, computeTfp } from '../simulation/systems/production';
 import { distance } from './geometry';
-
-const GOV_TYPES: GovernmentType[] = [
-	'monarchy',
-	'constitutional-monarchy',
-	'republic',
-	'oligarchy',
-	'autocracy',
-	'military-regime',
-	'federation'
-];
-const GOV_WEIGHTS = [0.22, 0.1, 0.16, 0.18, 0.18, 0.1, 0.06];
 
 /** Typical starting budget (MODEL.md §17), perturbed per state. */
 const BASE_BUDGET = {
@@ -203,9 +193,7 @@ export function buildStates(
 		const centralization = statsRng.range(0.3, 0.8);
 		const politicalParticipation = statsRng.range(0.1, 0.55);
 
-		const governmentType = statsRng.weighted(GOV_TYPES, GOV_WEIGHTS);
-		const hereditary =
-			governmentType === 'monarchy' || governmentType === 'constitutional-monarchy';
+		const hereditary = statsRng.bool(0.35);
 
 		const factions = normalizeShares({
 			elite: statsRng.range(0.1, 1),
@@ -283,6 +271,19 @@ export function buildStates(
 			computeDesiredParticipation(education, urbanization, factions) - politicalParticipation
 		);
 		const eliteConflict = computeEliteConflict(participationGap, factions, inequality);
+		const governmentType = classifyGovernment({
+			governmentType: 'republic',
+			hereditary,
+			legitimacy,
+			stability,
+			politicalParticipation,
+			centralization,
+			ruleOfLaw,
+			institutionalCapacity,
+			factions,
+			eliteConflict,
+			participationGap
+		});
 
 		states.push({
 			id,

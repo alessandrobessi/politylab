@@ -80,7 +80,11 @@ export const DEFAULT_MODEL_CONFIG = {
 		// Not in MODEL.md §79. Follows the §29 legitimacy precedent: a mild pull
 		// toward the middle so inequality (§28, which has no restoring term) does
 		// not drift to a bound over centuries. See §92.
-		inequalityMeanReversion: 0.004
+		inequalityMeanReversion: 0.004,
+
+		// M17. factionAdjustmentRate is MODEL.md §33's 0.05/yr. (Overextension §38
+		// is measured against the world's per-state means, so it needs no scale.)
+		factionAdjustmentRate: 0.05
 	},
 
 	military: {

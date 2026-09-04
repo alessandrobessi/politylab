@@ -3233,6 +3233,18 @@ namespace.param: old → new — reason (milestone / seed evidence)
   relation fields bounded/finite; the opinion↔threat loop has gain < 1
   (converges). (Note: M12 raises `opinionMeanReversion`, softening the
   toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M17: government transitions. Faction influence (§33), institutional capacity
+  (§37), and overextension (§38) are now dynamic. Overextension is measured as a
+  state's world-territory share divided by its world-admin-capacity share
+  (era-independent, no scale constant) and feeds regime stress (weight 0.10) and
+  institutional erosion. On a rupture (`ruptureProbability = 0.08 · sigmoid((p −
+  0.65)·10)`, §35) one of reform / coup / revolution / autocratization is chosen
+  by weighted seeded draw (§36) and reshapes the continuous structure; the
+  government-type label is re-derived every year by `classifyGovernment` (§32),
+  never a driver. Over 10 seeds × 1,000 y: ~33 transitions per world, government
+  types spread across republic / oligarchy / autocracy / federation /
+  constitutional-monarchy (none > 55%), overextension now brakes conquerors
+  (largest empire 21–52%, 0/10 seeds > 90%), 3–7 of 8 states survive.
 - M16: warfare. Combat is `attackerSuccess = sigmoid(ln(strengthRatio)·3)` with
   terrain defence (§56–57); casualties ≤ 3%/yr (§58), economic damage and
   capital destruction (§59), war exhaustion accrual (§61). A dominant attacker
