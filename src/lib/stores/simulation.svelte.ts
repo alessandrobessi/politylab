@@ -1,63 +1,97 @@
 /**
- * The Simulation Controller layer (BLUEPRINT.md §6, §34): the bridge between the
- * framework-free engine and the Svelte UI. It owns the running world, a speed
- * setting, and the timer that advances the clock.
- *
- * The engine mutates the world object in place, which Svelte's `$state` proxy
- * cannot observe, so a private version counter is bumped after every advance and
- * read by the public getters — any reactive scope that reads `world` / `year`
- * re-runs when the world changes. High-speed execution moves into a Web Worker
- * in milestone 23.
+ * The Simulation Controller (BLUEPRINT.md §6, §34): a message client for the
+ * Web Worker that runs the engine. The worker owns the world and history; the
+ * controller holds the latest pushed `WorkerState` and exposes it reactively.
+ * Engine work never touches the UI thread, so 20×/100× stay responsive.
  */
 
-import { createSimulation, type Simulation } from '$lib/simulation/engine';
-import type { Cause, State, StateYearStats } from '$lib/simulation';
-import { generateWorld } from '$lib/worldgen';
+import SimulationWorker from '$lib/workers/simulation.worker?worker';
+import type {
+	SavedSimulation,
+	WorkerCommand,
+	WorkerMessage,
+	WorkerState
+} from '$lib/workers/protocol';
+import { WorkerCore } from '$lib/workers/core';
+import type { Cause, State, StateYearStats, World } from '$lib/simulation';
 
-export type Speed = 0 | 1 | 5;
+export type Speed = 0 | 1 | 5 | 20 | 100;
+export const SPEEDS: Speed[] = [1, 5, 20, 100];
 
-const TICK_INTERVAL_MS = 250;
 const DEFAULT_SEED = 481204;
 
+/** Minimal transport: a real Worker in the browser, an inline core elsewhere. */
+interface Transport {
+	post(cmd: WorkerCommand): void;
+	dispose(): void;
+}
+
 export class SimulationController {
-	#sim: Simulation;
+	#transport: Transport;
 	#version = $state(0);
-	#timer: ReturnType<typeof setInterval> | null = null;
+	#state = $state<WorkerState | null>(null);
+	#pendingSave: ((saved: SavedSimulation) => void) | null = null;
 
 	seed = $state(DEFAULT_SEED);
 	speed = $state<Speed>(0);
-	/** Currently inspected state, or `null`. */
 	selectedId = $state<string | null>(null);
 
 	constructor(seed: number = DEFAULT_SEED) {
 		this.seed = seed;
-		this.#sim = createSimulation(generateWorld(seed));
+		this.#transport = createTransport((msg) => this.#onMessage(msg));
+		this.#transport.post({ type: 'generate', seed });
 	}
 
-	get world() {
-		void this.#version;
-		return this.#sim.world;
+	#onMessage(msg: WorkerMessage): void {
+		if (msg.type === 'state') {
+			this.#state = msg;
+			this.#version += 1;
+		} else if (msg.type === 'saved') {
+			this.#pendingSave?.(msg.saved);
+			this.#pendingSave = null;
+		}
 	}
 
-	get history() {
+	get ready(): boolean {
 		void this.#version;
-		return this.#sim.history;
+		return this.#state !== null;
 	}
 
-	get year() {
+	get world(): World | null {
 		void this.#version;
-		return this.#sim.world.year;
+		return this.#state?.world ?? null;
+	}
+
+	get year(): number {
+		void this.#version;
+		return this.#state?.world.year ?? 0;
+	}
+
+	/** The true present year, unaffected by replay (for the timeline extent). */
+	get liveYear(): number {
+		void this.#version;
+		return this.#state?.liveYear ?? 0;
 	}
 
 	get running(): boolean {
 		return this.speed > 0;
 	}
 
-	/** The selected state object, or `null`. */
+	/** True while viewing a past year (read-only). */
+	get viewYear(): number | null {
+		void this.#version;
+		return this.#state?.viewYear ?? null;
+	}
+
+	get totalEvents(): number {
+		void this.#version;
+		return this.#state?.totalEvents ?? 0;
+	}
+
 	get selected(): State | null {
 		void this.#version;
 		return this.selectedId
-			? (this.#sim.world.states.find((s) => s.id === this.selectedId) ?? null)
+			? (this.#state?.world.states.find((s) => s.id === this.selectedId) ?? null)
 			: null;
 	}
 
@@ -65,63 +99,109 @@ export class SimulationController {
 		this.selectedId = id;
 	}
 
-	/** Annual stat history for a state, oldest → newest. */
 	statsFor(id: string): StateYearStats[] {
 		void this.#version;
-		return this.#sim.history.byState[id] ?? [];
+		return this.#state?.statsTail[id] ?? [];
 	}
 
-	/** Latest recorded causal contributors for a metric on a state. */
 	causesFor(id: string, metric: string): Cause[] {
 		void this.#version;
-		const rows = this.#sim.history.byState[id];
-		return rows?.at(-1)?.causes?.[metric] ?? [];
+		return this.#state?.statsTail[id]?.at(-1)?.causes?.[metric] ?? [];
 	}
 
-	#bump(): void {
-		this.#version += 1;
-	}
-
-	#stopTimer(): void {
-		if (this.#timer !== null) {
-			clearInterval(this.#timer);
-			this.#timer = null;
-		}
-	}
-
-	/** Advance exactly one year (only meaningful while paused). */
 	step(): void {
-		this.#sim.step();
-		this.#bump();
+		this.speed = 0;
+		this.#transport.post({ type: 'step' });
 	}
 
 	setSpeed(speed: Speed): void {
 		this.speed = speed;
-		this.#stopTimer();
-		if (speed > 0) {
-			this.#timer = setInterval(() => {
-				this.#sim.run(speed);
-				this.#bump();
-			}, TICK_INTERVAL_MS);
-		}
+		this.#transport.post(
+			speed === 0 ? { type: 'pause' } : { type: 'play', ticksPerSecond: speed * 6 }
+		);
 	}
 
 	pause(): void {
 		this.setSpeed(0);
 	}
 
-	/** Discard the current world and generate a fresh one from `seed`. */
+	/** Enter a read-only view of a past year. */
+	seek(year: number): void {
+		this.speed = 0;
+		this.#transport.post({ type: 'pause' });
+		this.#transport.post({ type: 'seek', year });
+	}
+
+	/** Leave the historical view and return to the present. */
+	resumeLive(): void {
+		this.#transport.post({ type: 'resume' });
+	}
+
 	regenerate(seed: number = this.seed): void {
-		this.#stopTimer();
 		this.speed = 0;
 		this.seed = seed;
 		this.selectedId = null;
-		this.#sim = createSimulation(generateWorld(seed));
-		this.#bump();
+		this.#transport.post({ type: 'generate', seed });
 	}
 
-	/** Stop the timer; call from the component's teardown. */
-	dispose(): void {
-		this.#stopTimer();
+	/** Ask the worker for a full serializable snapshot (for persistence). */
+	exportState(): Promise<SavedSimulation> {
+		return new Promise((resolve) => {
+			this.#pendingSave = resolve;
+			this.#transport.post({ type: 'export' });
+		});
 	}
+
+	loadState(saved: SavedSimulation): void {
+		this.speed = 0;
+		this.selectedId = null;
+		this.seed = saved.world.seed;
+		this.#transport.post({ type: 'load', saved });
+	}
+
+	dispose(): void {
+		this.#transport.dispose();
+	}
+}
+
+function createTransport(onMessage: (msg: WorkerMessage) => void): Transport {
+	if (typeof Worker !== 'undefined') {
+		const worker = new SimulationWorker();
+		worker.onmessage = (e: MessageEvent<WorkerMessage>) => onMessage(e.data);
+		return {
+			post: (cmd) => worker.postMessage(cmd),
+			dispose: () => worker.terminate()
+		};
+	}
+	// SSR / no-Worker fallback: run the core inline (synchronous).
+	const core = new WorkerCore();
+	return {
+		post: (cmd) => {
+			switch (cmd.type) {
+				case 'generate':
+					core.generate(cmd.seed);
+					break;
+				case 'step':
+					core.run(1);
+					break;
+				case 'seek':
+					core.seek(cmd.year);
+					break;
+				case 'resume':
+					core.resume();
+					break;
+				case 'load':
+					core.load(cmd.saved);
+					break;
+				case 'export':
+					onMessage({ type: 'saved', saved: core.export() });
+					return;
+				case 'play':
+				case 'pause':
+					break;
+			}
+			onMessage(core.snapshot(false));
+		},
+		dispose: () => {}
+	};
 }

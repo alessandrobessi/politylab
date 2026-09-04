@@ -3305,3 +3305,18 @@ namespace.param: old → new — reason (milestone / seed evidence)
   pairs go to ~0. Trade feeds the capped (≤15%) TFP bonus, warms relations
   (§44), and speeds diffusion (§25). Bounded, symmetric, deterministic. Whether
   this over-suppresses conflict is an open question until wars exist (M15/M16).
+- M23–M26: Phase 6 (performance / history / persistence). No engine coefficients
+  changed — `simulateYears` is unchanged and the determinism + architecture
+  tests still pass. The engine now runs inside a Web Worker (`WorkerCore` is the
+  `self`-free, Node-testable core; a thin `.worker.ts` shim wraps it, and an
+  inline synchronous transport is used under SSR / when `Worker` is undefined).
+  20× / 100× speeds added; a 1,000-year run completes in ~3 s with the UI
+  thread free. The worker pushes a **truncated** state message: `world.events`
+  to the last `EVENT_TAIL = 400`, per-state annual stats to the last
+  `STATS_TAIL = 250` rows. Consequence: the M24 history charts and M21 inspector
+  sparklines only show the most recent ~250 years of a longer run; the full
+  record is retained in the worker and travels intact through `export` / `load`
+  (M26) and `seek` snapshots (M25). `WorkerState.liveYear` was added so the M25
+  timeline keeps its extent at the true present while a past year is being
+  viewed read-only. Widening the charts to full history (a separate one-shot
+  history fetch rather than the throttled tail) is deferred to post-v0.1.
