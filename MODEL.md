@@ -3320,3 +3320,20 @@ namespace.param: old → new — reason (milestone / seed evidence)
   timeline keeps its extent at the true present while a past year is being
   viewed read-only. Widening the charts to full history (a separate one-shot
   history fetch rather than the throttled tail) is deferred to post-v0.1.
+- M27: Monte Carlo runner (`src/lib/montecarlo/`, `pnpm mc`, no engine change).
+  Batch of 100 worlds × 500 years (seeds 1–100) in ~15 s under vite-node:
+  **no §78 pathology rule fires.** Aggregate: ~44 wars/world all short
+  (mean ≈ 2.9 y), 100% of worlds have wars, 7–8 of 8 states survive
+  (extinction rate ≈ 1%), largest empire ≈ 23% (0% of worlds reach the 90%
+  hegemony bar), GDP gini ≈ 0.37, ~15 political transitions/world, alliance
+  frequency ≈ 28%. Government plurality across worlds: oligarchy 57, republic
+  24, autocracy 9, federation 5, constitutional-monarchy 4, monarchy 1 — no
+  world converges to one type (td6ki3 clear), but **oligarchy is the plurality
+  in a majority of worlds** — a soft §77 diversity concern, not a §78 trip.
+  **Calibration watches for a dedicated post-v0.1 pass (no coefficient change
+  now):** (a) state elimination is low — over 500 y almost no state dies, so
+  MODEL §77's "some should disappear" is only weakly met; (b) technology
+  convergence ≈ 0.99 — states end a run nearly tied on the tech index
+  (diffusion dominates divergence), though not pathologically early (s6j4is
+  clear). Both are recorded here so the M9/M17 `Calibration watch` notes above
+  now have Monte Carlo evidence behind them.

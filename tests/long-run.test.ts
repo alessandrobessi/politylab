@@ -28,4 +28,22 @@ describe('long-run stability', () => {
 			expect(() => assertFiniteWorld(world)).not.toThrow();
 		}
 	});
+
+	/**
+	 * The heavy batch from BLUEPRINT.md §27 / the plan (100 worlds × 10,000 years).
+	 * Opt-in via `MC_HEAVY=1 pnpm test` so it doesn't dominate the normal run; the
+	 * `pnpm mc` CLI covers wider batches at shorter horizons.
+	 */
+	const heavy = process.env.MC_HEAVY === '1';
+	it.skipIf(!heavy)(
+		'100 worlds × 10,000 years stay finite (MC_HEAVY=1)',
+		() => {
+			for (let i = 0; i < 100; i++) {
+				const world = generateWorld(1000 + i);
+				for (let y = 0; y < 10_000; y++) simulateYear(world, { validate: true });
+				expect(world.year).toBe(10_000);
+			}
+		},
+		600_000
+	);
 });
