@@ -3169,6 +3169,11 @@ namespace.param: old → new — reason (milestone / seed evidence)
 
 ### Coefficient changes
 
+- `warfare.warThreshold: 0.15 → 0.20` (M15) — at 0.15 the §53 probability fired
+  ~420 wars per 1,000 years (a declaration every ~2 years); 0.20 brings it to
+  ~280–320, still frequent. Real calibration of war frequency waits on M16
+  (actual casualties / economic damage raise the cost of war) and M27.
+
 - `politics.legitimacyMeanReversion: 0.005 → 0.012` (M10) — at 0.005 the
   persistent Malthusian food stress (§11, `foodStress ≈ 0.37` at equilibrium)
   applies `−0.020·foodStress ≈ −0.0074`/yr to legitimacy every year, which the
@@ -3222,6 +3227,20 @@ namespace.param: old → new — reason (milestone / seed evidence)
   relation fields bounded/finite; the opinion↔threat loop has gain < 1
   (converges). (Note: M12 raises `opinionMeanReversion`, softening the
   toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M15: war decisions. `scoreWarTarget` (§52) contributors are proxies:
+  `territorialValue` from target border-land agri potential, `resourceValue`
+  from its resource means, `strategicValue = 0.4·proximity + 0.6·borderTension`,
+  `domesticPoliticalBenefit` rises as the attacker's stability/legitimacy fall,
+  `perceivedMilitaryAdvantage` = attacker's share of combined power (defender +
+  0.6·allies), `economicCost = 0.3 + 0.5·trade + 0.2·debtStress`. Only
+  graph-adjacent, non-allied, non-belligerent pairs roll §53's `pWar`; soft
+  gates scale it down for low stability, weak military, overextension.
+  `makeStrategicDecisions` also runs a compact peaceful-action menu (invest /
+  arm / seek-trade) that nudges budgets on a genuine need. Placeholder war
+  resolution in `warfare.ts`: exhaustion accrual (§61 base) + probabilistic end
+  after ~2–3 years, no combat/territory (M16). Result: ~280–320 wars per
+  1,000 years, all ending, world finite; stability drops to ≈ 0.4–0.55 in the
+  more contentious world, development continues (tech ≈ 0.9, GDP/cap ≈ 7–10).
 - M14: military power becomes dynamic. Capital accumulates from the military
   budget line toward `spending ÷ depreciation`, so power grows with the economy
   (≈ 40× over 1,000 years as GDP grows) while inter-state power ratios stay

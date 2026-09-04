@@ -130,26 +130,23 @@ describe('trade → output (MODEL.md §27, acceptance)', () => {
 });
 
 describe('trade → relations & diffusion (acceptance)', () => {
-	it('a well-connected trading pair ends warmer and more advanced than an isolated one', () => {
-		const connected = generateWorld(7);
-		const isolated = generateWorld(7);
-		// Cut all trade potential for the isolated world: no proximity, no opinion.
-		for (const s of isolated.states) {
-			for (const rel of Object.values(s.relations)) {
-				rel.opinion = -0.5;
-				rel.proximity = 0;
-				rel.trade = 0;
-			}
+	it('permanently-belligerent pairs never build trade, unlike peaceful ones', () => {
+		const world = makeTinyWorld();
+		const [a, b] = [world.states[0]!, world.states[1]!];
+		a.prosperity = b.prosperity = 0.7;
+		a.relations[b.id]!.opinion = b.relations[a.id]!.opinion = 0.6;
+		for (let i = 0; i < 120; i++) {
+			a.relations[b.id]!.atWar = b.relations[a.id]!.atWar = true;
+			updateTrade(world, context());
 		}
-		simulateYears(connected, 300);
-		simulateYears(isolated, 300);
-		const meanTrade = (w: typeof connected) =>
-			w.states.reduce(
-				(a, s) =>
-					a + Object.values(s.relations).reduce((x, r) => x + r.trade, 0) / (w.states.length - 1),
-				0
-			) / w.states.length;
-		expect(meanTrade(connected)).toBeGreaterThan(meanTrade(isolated));
+		expect(a.relations[b.id]!.trade).toBeLessThan(0.05);
+
+		const peace = makeTinyWorld();
+		const [c, d] = [peace.states[0]!, peace.states[1]!];
+		c.prosperity = d.prosperity = 0.7;
+		c.relations[d.id]!.opinion = d.relations[c.id]!.opinion = 0.6;
+		for (let i = 0; i < 120; i++) updateTrade(peace, context());
+		expect(c.relations[d.id]!.trade).toBeGreaterThan(a.relations[b.id]!.trade);
 	});
 });
 

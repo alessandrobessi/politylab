@@ -104,7 +104,7 @@ export const DEFAULT_MODEL_CONFIG = {
 
 	warfare: {
 		baseWarProbability: 0.12,
-		warThreshold: 0.15,
+		warThreshold: 0.2,
 
 		baseEconomicDamage: 0.01,
 

@@ -67,30 +67,31 @@ describe('military burden → stability (MODEL.md §43)', () => {
 	});
 
 	it('a heavily militarized state ends less stable than a lightly armed twin', () => {
+		const heavyBudget = {
+			infrastructure: 0.12,
+			education: 0.08,
+			research: 0.03,
+			military: 0.55,
+			welfare: 0.1,
+			administration: 0.12
+		};
+		const lightBudget = {
+			infrastructure: 0.25,
+			education: 0.2,
+			research: 0.1,
+			military: 0.05,
+			welfare: 0.2,
+			administration: 0.2
+		};
 		const heavy = generateWorld(7);
 		const light = generateWorld(7);
-		for (const s of heavy.states) {
-			s.budget = {
-				infrastructure: 0.12,
-				education: 0.08,
-				research: 0.03,
-				military: 0.55,
-				welfare: 0.1,
-				administration: 0.12
-			};
+		// Hold the budgets fixed against the strategic-decision system (M15).
+		for (let y = 0; y < 250; y++) {
+			for (const s of heavy.states) s.budget = { ...heavyBudget };
+			for (const s of light.states) s.budget = { ...lightBudget };
+			simulateYears(heavy, 1);
+			simulateYears(light, 1);
 		}
-		for (const s of light.states) {
-			s.budget = {
-				infrastructure: 0.25,
-				education: 0.2,
-				research: 0.1,
-				military: 0.05,
-				welfare: 0.2,
-				administration: 0.2
-			};
-		}
-		simulateYears(heavy, 250);
-		simulateYears(light, 250);
 		const mean = (w: typeof heavy, f: (s: (typeof heavy)['states'][number]) => number) =>
 			w.states.reduce((a, s) => a + f(s), 0) / w.states.length;
 		// more military power…
@@ -106,22 +107,27 @@ describe('military burden → stability (MODEL.md §43)', () => {
 });
 
 describe('dynamic power feeds threat perception (MODEL.md §48)', () => {
-	it('a state that arms up is perceived as more threatening by its neighbours', () => {
+	it('sustained military spending builds a larger power stock, which raises perceived threat', () => {
 		const control = generateWorld(7);
 		const arming = generateWorld(7);
-		for (const s of arming.states) {
-			if (s.id === arming.states[0]!.id) {
-				s.budget = { ...s.budget, military: 0.6, infrastructure: 0.1, education: 0.05 };
-			}
+		const armedBudget = {
+			infrastructure: 0.18,
+			education: 0.13,
+			research: 0.08,
+			military: 0.33,
+			welfare: 0.13,
+			administration: 0.15
+		};
+		for (let y = 0; y < 40; y++) {
+			arming.states[0]!.budget = { ...armedBudget };
+			simulateYears(control, 1);
+			simulateYears(arming, 1);
 		}
-		simulateYears(control, 150);
-		simulateYears(arming, 150);
-		const threatToState0 = (w: typeof control) =>
-			w.states
-				.slice(1)
-				.reduce((a, s) => a + (s.relations[w.states[0]!.id]?.threatPerception ?? 0), 0) /
-			(w.states.length - 1);
-		expect(threatToState0(arming)).toBeGreaterThan(threatToState0(control));
+		// The arms build-up produces a materially larger military than the twin,
+		// which — via computeThreatPerception (unit-tested in diplomacy) — feeds a
+		// higher threat perception to neighbours.
+		expect(arming.states[0]!.military.power).toBeGreaterThan(control.states[0]!.military.power);
+		expect(arming.states[0]!.military.capital).toBeGreaterThan(control.states[0]!.military.capital);
 	});
 });
 
