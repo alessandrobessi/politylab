@@ -8,3 +8,4 @@ export type { Cause, Explained } from './events/causes';
 export { assertFiniteWorld, WorldInvariantError } from './assert';
 export { simulateYear, simulateYears, createSimulation } from './engine';
 export type { SimContext, SimulateOptions, Simulation } from './engine';
+export { technologyIndex } from './systems/technology';

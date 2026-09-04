@@ -11,6 +11,7 @@
  */
 
 import { createSimulation, type Simulation } from '$lib/simulation/engine';
+import type { Cause, State, StateYearStats } from '$lib/simulation';
 import { generateWorld } from '$lib/worldgen';
 
 export type Speed = 0 | 1 | 5;
@@ -25,6 +26,8 @@ export class SimulationController {
 
 	seed = $state(DEFAULT_SEED);
 	speed = $state<Speed>(0);
+	/** Currently inspected state, or `null`. */
+	selectedId = $state<string | null>(null);
 
 	constructor(seed: number = DEFAULT_SEED) {
 		this.seed = seed;
@@ -48,6 +51,31 @@ export class SimulationController {
 
 	get running(): boolean {
 		return this.speed > 0;
+	}
+
+	/** The selected state object, or `null`. */
+	get selected(): State | null {
+		void this.#version;
+		return this.selectedId
+			? (this.#sim.world.states.find((s) => s.id === this.selectedId) ?? null)
+			: null;
+	}
+
+	select(id: string | null): void {
+		this.selectedId = id;
+	}
+
+	/** Annual stat history for a state, oldest → newest. */
+	statsFor(id: string): StateYearStats[] {
+		void this.#version;
+		return this.#sim.history.byState[id] ?? [];
+	}
+
+	/** Latest recorded causal contributors for a metric on a state. */
+	causesFor(id: string, metric: string): Cause[] {
+		void this.#version;
+		const rows = this.#sim.history.byState[id];
+		return rows?.at(-1)?.causes?.[metric] ?? [];
 	}
 
 	#bump(): void {
@@ -87,6 +115,7 @@ export class SimulationController {
 		this.#stopTimer();
 		this.speed = 0;
 		this.seed = seed;
+		this.selectedId = null;
 		this.#sim = createSimulation(generateWorld(seed));
 		this.#bump();
 	}

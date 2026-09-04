@@ -1,41 +1,31 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 	import { SimulationController } from '$lib/stores/simulation.svelte';
+	import WorldMap from '$lib/visualization/WorldMap.svelte';
+	import StateInspector from '$lib/visualization/StateInspector.svelte';
+	import EventFeed from '$lib/visualization/EventFeed.svelte';
+	import { MAP_MODES, type MapMode } from '$lib/visualization/mapModes';
 
 	const sim = new SimulationController();
 	onDestroy(() => sim.dispose());
 
 	let seedInput = $state(sim.seed);
-	let minImportance = $state(0.3);
+	let mode = $state<MapMode>('political');
 
-	const recentEvents = $derived(
-		sim.world.events
-			.filter((e) => e.importance >= minImportance)
-			.slice(-40)
-			.reverse()
-	);
-	const eventDot = (imp: number) =>
-		imp >= 0.9 ? '#c0392b' : imp >= 0.7 ? '#e67e22' : imp >= 0.5 ? '#f1c40f' : '#95a5a6';
-
-	const millions = (n: number) => (n / 1_000_000).toFixed(2) + 'M';
-	const techAvg = (t: Record<string, number>) => {
-		const vs = Object.values(t);
-		return (vs.reduce((a, b) => a + b, 0) / vs.length).toFixed(2);
-	};
-	const fill = (hue: number) => `hsl(${hue.toFixed(0)} 55% 55%)`;
-	const pointsOf = (polygon: readonly (readonly [number, number])[]) =>
-		polygon.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
-	const ownerHue = (ownerId: string | null) =>
-		sim.world.states.find((s) => s.id === ownerId)?.colorHue ?? 0;
+	const nameOf = (id: string) => sim.world.states.find((s) => s.id === id)?.name ?? id;
+	const regionCount = (id: string) => sim.world.regions.filter((r) => r.ownerId === id).length;
+	const warsFor = (id: string) =>
+		sim.world.wars.filter((w) => w.attackerId === id || w.defenderId === id);
 </script>
 
-<main>
-	<header>
+<div class="app">
+	<header class="topbar">
 		<div class="year">YEAR {sim.year}</div>
 		<div class="speeds">
 			<button class:active={!sim.running} onclick={() => sim.pause()}>Pause</button>
-			<button class:active={sim.speed === 1} onclick={() => sim.setSpeed(1)}>1×</button>
-			<button class:active={sim.speed === 5} onclick={() => sim.setSpeed(5)}>5×</button>
+			{#each [1, 5] as const as s (s)}
+				<button class:active={sim.speed === s} onclick={() => sim.setSpeed(s)}>{s}×</button>
+			{/each}
 			<button onclick={() => sim.step()} disabled={sim.running}>Step</button>
 		</div>
 		<form
@@ -50,127 +40,93 @@
 		</form>
 	</header>
 
-	<svg viewBox="0 0 {sim.world.width} {sim.world.height}" role="img" aria-label="World map">
-		{#each sim.world.regions as region (region.id)}
-			<polygon
-				points={pointsOf(region.polygon)}
-				fill={fill(ownerHue(region.ownerId))}
-				stroke="rgba(0,0,0,0.25)"
-				stroke-width="0.75"
+	<div class="body">
+		<section class="map-col">
+			<div class="modes">
+				{#each MAP_MODES as m (m.id)}
+					<button class:active={mode === m.id} onclick={() => (mode = m.id)}>{m.label}</button>
+				{/each}
+			</div>
+			<WorldMap
+				world={sim.world}
+				{mode}
+				selectedId={sim.selectedId}
+				onselect={(id) => sim.select(id)}
 			/>
-		{/each}
-		{#each sim.world.states as state (state.id)}
-			{@const r = sim.world.regions.find((rr) => rr.ownerId === state.id)}
-			{#if r}
-				<text
-					x={r.site[0]}
-					y={r.site[1]}
-					text-anchor="middle"
-					font-size="14"
-					fill="rgba(0,0,0,0.75)">{state.name}</text
-				>
-			{/if}
-		{/each}
-	</svg>
+		</section>
 
-	<table>
-		<thead>
-			<tr>
-				<th>State</th>
-				<th>Gov</th>
-				<th>Regions</th>
-				<th>Population</th>
-				<th>GDP p.c.</th>
-				<th>Tech</th>
-				<th>Stability</th>
-				<th>Food ratio</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each sim.world.states as state (state.id)}
-				<tr>
-					<td><span class="swatch" style:background={fill(state.colorHue)}></span>{state.name}</td>
-					<td>{state.politics.governmentType}</td>
-					<td>{sim.world.regions.filter((r) => r.ownerId === state.id).length}</td>
-					<td>{millions(state.population)}</td>
-					<td>{state.gdpPerCapita.toFixed(2)}</td>
-					<td>{techAvg(state.technology)}</td>
-					<td>{(state.politics.stability * 100).toFixed(0)}%</td>
-					<td>{state.foodRatio.toFixed(2)}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
-
-	<section class="events">
-		<header class="events-head">
-			<h2>Historical events</h2>
-			<label
-				>min importance {minImportance.toFixed(1)}
-				<input type="range" min="0" max="1" step="0.1" bind:value={minImportance} />
-			</label>
-		</header>
-		<ul>
-			{#each recentEvents as e (e.id)}
-				<li>
-					<span class="year">{e.year}</span>
-					<span class="dot" style:background={eventDot(e.importance)}></span>
-					<span class="title">{e.title}</span>
-					{#if e.causes.length}
-						<span class="causes"
-							>{e.causes
-								.slice(0, 3)
-								.map((c) => c.factor)
-								.join(' · ')}</span
-						>
-					{/if}
-				</li>
+		<aside class="inspector-col">
+			{#if sim.selected}
+				<StateInspector
+					country={sim.selected}
+					stats={sim.statsFor(sim.selected.id)}
+					wars={warsFor(sim.selected.id)}
+					regionCount={regionCount(sim.selected.id)}
+					{nameOf}
+					causesFor={(metric) => sim.causesFor(sim.selected!.id, metric)}
+				/>
 			{:else}
-				<li class="empty">No events at this importance yet — let the clock run.</li>
-			{/each}
-		</ul>
-	</section>
+				<p class="hint">Click a state on the map to inspect it.</p>
+				<ul class="roster">
+					{#each sim.world.states.filter((s) => s.alive) as s (s.id)}
+						<li>
+							<button onclick={() => sim.select(s.id)}>
+								<span class="sw" style:background="hsl({s.colorHue} 55% 55%)"></span>{s.name}
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</aside>
+	</div>
 
-	<p class="note">
-		Milestone 18 — nine simulation systems plus a derived event feed; every event above emerges from
-		this year's change in world state, not a script. Prior note: no-op, so only the year advances.
-	</p>
-</main>
+	<footer class="feed-row">
+		<EventFeed
+			events={sim.world.events}
+			selectedId={sim.selectedId}
+			{nameOf}
+			onselect={(id) => sim.select(id)}
+		/>
+	</footer>
+</div>
 
 <style>
-	main {
-		max-width: 1040px;
+	.app {
+		max-width: 1200px;
 		margin: 0 auto;
-		padding: 1.5rem;
+		padding: 1rem 1.25rem 2rem;
 		font-family:
 			system-ui,
 			-apple-system,
 			sans-serif;
+		color: #1c2733;
 	}
-	header {
+	.topbar {
 		display: flex;
 		align-items: center;
 		gap: 1.5rem;
 		flex-wrap: wrap;
-		padding-bottom: 1rem;
+		padding-bottom: 0.75rem;
 		border-bottom: 1px solid #ddd;
 		margin-bottom: 1rem;
 	}
 	.year {
-		font-size: 1.4rem;
+		font-size: 1.35rem;
 		font-weight: 700;
 		font-variant-numeric: tabular-nums;
 	}
-	.speeds {
+	.speeds,
+	.modes {
 		display: flex;
-		gap: 0.35rem;
+		gap: 0.3rem;
 	}
 	button {
-		padding: 0.3rem 0.7rem;
+		padding: 0.28rem 0.65rem;
 		border: 1px solid #bbb;
 		background: #f6f6f6;
 		border-radius: 4px;
 		cursor: pointer;
+		font-size: 0.85rem;
 	}
 	button.active {
 		background: #2b6cb0;
@@ -188,98 +144,57 @@
 		margin-left: auto;
 	}
 	.seed input {
-		width: 9rem;
+		width: 8rem;
 	}
-	svg {
+	.body {
+		display: grid;
+		grid-template-columns: minmax(0, 3fr) minmax(16rem, 1fr);
+		gap: 1.25rem;
+		align-items: start;
+	}
+	.modes {
+		margin-bottom: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.inspector-col {
+		border: 1px solid #e2e6ea;
+		border-radius: 6px;
+		padding: 0.9rem 1rem;
+		background: #fcfcfd;
+		min-height: 12rem;
+	}
+	.hint {
+		color: #888;
+		margin: 0 0 0.75rem;
+	}
+	.roster {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.25rem;
+	}
+	.roster button {
 		width: 100%;
-		height: auto;
-		border: 1px solid #ddd;
-		background: #eef2f5;
-		display: block;
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		margin-top: 1rem;
-		font-size: 0.9rem;
-	}
-	th,
-	td {
 		text-align: left;
-		padding: 0.35rem 0.5rem;
-		border-bottom: 1px solid #e3e3e3;
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		border: 1px solid #e2e6ea;
+		background: #fff;
 	}
-	.swatch {
-		display: inline-block;
+	.sw {
 		width: 0.8rem;
 		height: 0.8rem;
 		border-radius: 2px;
-		margin-right: 0.4rem;
-		vertical-align: middle;
+		display: inline-block;
 	}
-	.events {
-		margin-top: 1.5rem;
+	.feed-row {
+		margin-top: 1.25rem;
 	}
-	.events-head {
-		display: flex;
-		justify-content: space-between;
-		align-items: baseline;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-	.events h2 {
-		font-size: 1rem;
-		margin: 0;
-	}
-	.events label {
-		font-size: 0.8rem;
-		color: #666;
-		display: flex;
-		gap: 0.4rem;
-		align-items: center;
-	}
-	.events ul {
-		list-style: none;
-		padding: 0;
-		margin: 0.5rem 0 0;
-		max-height: 16rem;
-		overflow-y: auto;
-		border: 1px solid #e3e3e3;
-		border-radius: 4px;
-	}
-	.events li {
-		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		padding: 0.3rem 0.6rem;
-		border-bottom: 1px solid #f0f0f0;
-		font-size: 0.85rem;
-	}
-	.events .year {
-		color: #888;
-		font-variant-numeric: tabular-nums;
-		min-width: 2.5rem;
-	}
-	.events .dot {
-		width: 0.55rem;
-		height: 0.55rem;
-		border-radius: 50%;
-		flex: none;
-		align-self: center;
-	}
-	.events .title {
-		flex: 1;
-	}
-	.events .causes {
-		color: #999;
-		font-size: 0.75rem;
-	}
-	.events .empty {
-		color: #999;
-	}
-	.note {
-		color: #666;
-		font-size: 0.85rem;
-		margin-top: 1rem;
+	@media (max-width: 820px) {
+		.body {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>
