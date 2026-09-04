@@ -1,4 +1,10 @@
-import { createSimulation, simulateYears, type Simulation, type World } from '$lib/simulation';
+import {
+	createSimulation,
+	simulateYears,
+	type Simulation,
+	type StateYearStats,
+	type World
+} from '$lib/simulation';
 import { generateWorld } from '$lib/worldgen';
 import { EVENT_TAIL, STATS_TAIL, type SavedSimulation, type WorkerState } from './protocol';
 
@@ -69,6 +75,14 @@ export class WorkerCore {
 				year: s.year,
 				world: structuredClone(s.world)
 			}))
+		};
+	}
+
+	/** The complete per-state annual time series (for the history charts). */
+	fullHistory(): { stats: Record<string, StateYearStats[]>; liveYear: number } {
+		return {
+			stats: structuredClone(this.#sim.history.byState),
+			liveYear: this.#sim.world.year
 		};
 	}
 

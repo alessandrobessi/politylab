@@ -18,12 +18,14 @@ export type WorkerCommand =
 	| { type: 'seek'; year: number }
 	| { type: 'resume' }
 	| { type: 'load'; saved: SavedSimulation }
-	| { type: 'export' };
+	| { type: 'export' }
+	| { type: 'history' };
 
 /**
  * State the worker pushes back. `world.events` is truncated to the most recent
  * `EVENT_TAIL`; `statsTail` holds the last `STATS_TAIL` years per state for
- * sparklines. Full history is fetched via `seek` / `load` payloads.
+ * sparklines. The complete per-state time series is fetched on demand with the
+ * `history` command (see {@link WorkerHistory}).
  */
 export interface WorkerState {
 	type: 'state';
@@ -45,7 +47,16 @@ export interface WorkerSaved {
 	saved: SavedSimulation;
 }
 
-export type WorkerMessage = WorkerState | WorkerSaved;
+/** One-off reply to a `history` request: the complete per-state time series. */
+export interface WorkerHistory {
+	type: 'history';
+	/** Full annual rows per state id, ascending by year (not truncated). */
+	stats: Record<string, StateYearStats[]>;
+	/** The live year this history runs up to. */
+	liveYear: number;
+}
+
+export type WorkerMessage = WorkerState | WorkerSaved | WorkerHistory;
 
 export const EVENT_TAIL = 400;
 export const STATS_TAIL = 250;

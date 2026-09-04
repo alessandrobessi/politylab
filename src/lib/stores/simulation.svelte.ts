@@ -31,6 +31,7 @@ export class SimulationController {
 	#version = $state(0);
 	#state = $state<WorkerState | null>(null);
 	#pendingSave: ((saved: SavedSimulation) => void) | null = null;
+	#pendingHistory: ((stats: Record<string, StateYearStats[]>) => void) | null = null;
 
 	seed = $state(DEFAULT_SEED);
 	speed = $state<Speed>(0);
@@ -49,6 +50,9 @@ export class SimulationController {
 		} else if (msg.type === 'saved') {
 			this.#pendingSave?.(msg.saved);
 			this.#pendingSave = null;
+		} else if (msg.type === 'history') {
+			this.#pendingHistory?.(msg.stats);
+			this.#pendingHistory = null;
 		}
 	}
 
@@ -152,6 +156,18 @@ export class SimulationController {
 		});
 	}
 
+	/**
+	 * Fetch the complete per-state annual time series (not the truncated tail on
+	 * `statsTail`). Used by the history charts; call it on demand rather than
+	 * every tick — the payload is the whole run.
+	 */
+	requestHistory(): Promise<Record<string, StateYearStats[]>> {
+		return new Promise((resolve) => {
+			this.#pendingHistory = resolve;
+			this.#transport.post({ type: 'history' });
+		});
+	}
+
 	loadState(saved: SavedSimulation): void {
 		this.speed = 0;
 		this.selectedId = null;
@@ -196,6 +212,11 @@ function createTransport(onMessage: (msg: WorkerMessage) => void): Transport {
 				case 'export':
 					onMessage({ type: 'saved', saved: core.export() });
 					return;
+				case 'history': {
+					const h = core.fullHistory();
+					onMessage({ type: 'history', stats: h.stats, liveYear: h.liveYear });
+					return;
+				}
 				case 'play':
 				case 'pause':
 					break;

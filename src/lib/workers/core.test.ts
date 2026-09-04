@@ -20,6 +20,26 @@ describe('WorkerCore (M23)', () => {
 		}
 	});
 
+	it('fullHistory returns the complete, untruncated per-state series', () => {
+		const core = new WorkerCore();
+		core.generate(7);
+		core.run(400); // longer than STATS_TAIL
+
+		const tail = core.snapshot(false).statsTail;
+		const { stats, liveYear } = core.fullHistory();
+		expect(liveYear).toBe(400);
+
+		const anyId = Object.keys(stats)[0]!;
+		expect(stats[anyId]!.length).toBe(401); // year 0 baseline + 400 ticks
+		expect(tail[anyId]!.length).toBe(STATS_TAIL); // the tail is still capped
+		expect(stats[anyId]![0]!.year).toBe(0);
+		expect(stats[anyId]!.at(-1)!.year).toBe(400);
+
+		// it's a copy — mutating the result must not touch the simulation
+		stats[anyId]!.push({ ...stats[anyId]!.at(-1)! });
+		expect(core.fullHistory().stats[anyId]!.length).toBe(401);
+	});
+
 	it('matches a plain engine run for the same seed (worker adds no divergence)', () => {
 		const core = new WorkerCore();
 		core.generate(481204);

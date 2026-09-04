@@ -56,6 +56,11 @@ self.onmessage = (e: MessageEvent<WorkerCommand>) => {
 		case 'export':
 			self.postMessage({ type: 'saved', saved: core.export() });
 			break;
+		case 'history': {
+			const h = core.fullHistory();
+			self.postMessage({ type: 'history', stats: h.stats, liveYear: h.liveYear });
+			break;
+		}
 		case 'pause':
 			stopPlaying();
 			push(true);

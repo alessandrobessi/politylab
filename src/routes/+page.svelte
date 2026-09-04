@@ -178,7 +178,8 @@
 				{:else}
 					<HistoryCharts
 						states={sim.world.states}
-						statsFor={(id) => sim.statsFor(id)}
+						fetchHistory={() => sim.requestHistory()}
+						year={sim.liveYear}
 						initialSelected={sim.selectedId}
 					/>
 				{/if}

@@ -3387,6 +3387,14 @@ namespace.param: old → new — reason (milestone / seed evidence)
   (~64% of worlds, `td6ki3` clear) but consolidation past that makes `td6ki3`
   fire on ~15% of 2,000-year seeds; the fix is structural (participation must
   not ratchet one-way with development) and is its own pass.
+- **Full-history charts.** The M23–M26 note above deferred widening the history
+  charts past the throttled `STATS_TAIL` window. Done: a `history` worker
+  command returns the complete per-state series in one message
+  ({@link WorkerHistory}); `SimulationController.requestHistory()` fetches it and
+  `HistoryCharts` refreshes it on mount and, while the clock runs, at most about
+  once a second. The throttled `statsTail` stays as-is for the inspector
+  sparklines. `LineChart` axes already follow the data (calibration pass), so
+  the charts now show the whole run at full width.
 
 **v0.1 complete.** All 27 milestones landed; the BLUEPRINT §51 checklist (16
 conditions) is met; determinism, architecture, long-run, and directional test
