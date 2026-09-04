@@ -3337,3 +3337,12 @@ namespace.param: old → new — reason (milestone / seed evidence)
   (diffusion dominates divergence), though not pathologically early (s6j4is
   clear). Both are recorded here so the M9/M17 `Calibration watch` notes above
   now have Monte Carlo evidence behind them.
+
+**v0.1 complete.** All 27 milestones landed; the BLUEPRINT §51 checklist (16
+conditions) is met; determinism, architecture, long-run, and directional test
+suites are green (248 tests). The coefficient set is the §79 defaults plus the
+additions and changes catalogued above — every divergence has a rationale and,
+where relevant, a named watch for the first dedicated calibration pass after
+v0.1 (the two §77 softness items from M27, the `legitimacyMeanReversion` /
+urbanization interaction from M10, and the `technology.innovationRate` question
+from M9).
