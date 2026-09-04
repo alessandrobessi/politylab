@@ -3233,6 +3233,15 @@ namespace.param: old → new — reason (milestone / seed evidence)
   relation fields bounded/finite; the opinion↔threat loop has gain < 1
   (converges). (Note: M12 raises `opinionMeanReversion`, softening the
   toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M18: event engine. `captureEventSnapshot` freezes governmentType / territory /
+  tech index / GDP-per-capita / foodStress + the war and alliance sets before
+  the tick; `generateEvents` (phase 13) diffs afterwards and emits `WorldEvent`s
+  — war 0.8, peace 0.5, politics (transition) 0.6, territory loss 0.7, state
+  destruction 1.0, alliance 0.3, technology 0.4, economy 0.3, demography
+  (famine onset) 0.4 (MODEL §65). Causes are lifted from the emitting system's
+  trace where present (war decision, transition, GDP growth). Over 1,000 y a
+  world logs ~600–800 events, chronological, ≥ 4 types. The UI gains a
+  filterable event feed. **Phase 4 (conflict & political change) complete.**
 - M17: government transitions. Faction influence (§33), institutional capacity
   (§37), and overextension (§38) are now dynamic. Overextension is measured as a
   state's world-territory share divided by its world-admin-capacity share

@@ -33,7 +33,7 @@ import { updateTrade } from './systems/trade';
 import { updateAlliances, updateDiplomacy } from './systems/diplomacy';
 import { makeStrategicDecisions } from './strategy/decisions';
 import { resolveWarfare, applyTerritorialChanges } from './systems/warfare';
-import { generateEvents } from './events/event-engine';
+import { captureEventSnapshot, generateEvents } from './events/event-engine';
 
 export type { SimContext } from './context';
 
@@ -57,7 +57,8 @@ export function simulateYear(world: World, options: SimulateOptions = {}): World
 		traces
 	};
 
-	// BLUEPRINT.md §24 phase order. Systems 1–13 are no-ops until their milestone.
+	// BLUEPRINT.md §24 phase order.
+	const eventSnapshot = captureEventSnapshot(world);
 	updateEnvironment(world, ctx); // 1
 	updatePopulation(world, ctx); // 2
 	updateProduction(world, ctx); // 3
@@ -73,7 +74,7 @@ export function simulateYear(world: World, options: SimulateOptions = {}): World
 	makeStrategicDecisions(world, ctx); // 10
 	resolveWarfare(world, ctx); // 11
 	applyTerritorialChanges(world, ctx); // 12
-	generateEvents(world, ctx); // 13
+	generateEvents(world, ctx, eventSnapshot); // 13
 
 	world.year += 1;
 
