@@ -27,6 +27,10 @@ export default defineConfig({
 		// The simulation engine is pure TypeScript and must run under plain Node.
 		environment: 'node',
 		include: ['src/**/*.{test,spec}.{js,ts}', 'tests/**/*.{test,spec}.{js,ts}'],
-		exclude: ['node_modules/**', '.svelte-kit/**', 'build/**']
+		exclude: ['node_modules/**', '.svelte-kit/**', 'build/**'],
+		// Long-run tests simulate many 1,000-year worlds; the default 5s is tight
+		// on CI. Real engine optimisation lands with the Web Worker (M23).
+		testTimeout: 30_000,
+		hookTimeout: 30_000
 	}
 });

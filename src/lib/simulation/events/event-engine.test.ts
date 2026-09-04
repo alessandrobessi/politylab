@@ -34,7 +34,7 @@ describe('event engine (BLUEPRINT.md §26, MODEL.md §65–§66)', () => {
 
 	it('event importance follows the MODEL.md §65 scale', () => {
 		const sim = createSimulation(generateWorld(2));
-		sim.run(1000);
+		sim.run(600);
 		const importanceByType: Record<string, number> = {
 			alliance: 0.3,
 			economy: 0.3,

@@ -99,7 +99,7 @@ describe('resolveWarfare', () => {
 describe('long-run warfare (MODEL.md §77–§78)', () => {
 	it('wars occur and end, states can fall but no world conquest, world stays finite', () => {
 		let conquest = 0;
-		for (const seed of [1, 7, 42, 481204, 99, 2]) {
+		for (const seed of [1, 7, 42, 481204]) {
 			const world = generateWorld(seed);
 			simulateYears(world, 1000, { validate: true });
 

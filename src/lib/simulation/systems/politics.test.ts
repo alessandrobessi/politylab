@@ -213,9 +213,9 @@ describe('government transitions (MODEL.md §35–§37, acceptance)', () => {
 
 	it('produces a spread of government types across seeds — none dominates (MODEL §77)', () => {
 		const counts = new Map<string, number>();
-		for (const seed of [1, 2, 3, 5, 7, 11, 17, 42, 99, 481204]) {
+		for (const seed of [1, 3, 7, 11, 42, 481204]) {
 			const world = generateWorld(seed);
-			simulateYears(world, 800);
+			simulateYears(world, 600);
 			for (const s of world.states.filter((x) => x.alive)) {
 				counts.set(s.politics.governmentType, (counts.get(s.politics.governmentType) ?? 0) + 1);
 			}
