@@ -37,6 +37,11 @@ export interface BatchSummary {
 	meanPoliticalTransitions: number;
 	meanAllianceFrequency: number;
 
+	/** Per-world spread of the technology index (min/median/max across survivors), averaged. */
+	technologyIndexSpread: Distribution;
+	/** Per-world spread of GDP per capita (min/median/max across survivors), averaged. */
+	gdpPerCapitaSpread: Distribution;
+
 	/** Fraction of worlds where one state ended with >90% of world territory. */
 	hegemonyShare: number;
 	/** Fraction of worlds with at least one war. */
@@ -111,6 +116,18 @@ export function runBatch(options: BatchOptions): BatchResult {
 		meanTechnologyConvergence: mean(perWorld.map((m) => m.technologyConvergence)),
 		meanPoliticalTransitions: mean(perWorld.map((m) => m.politicalTransitions)),
 		meanAllianceFrequency: mean(perWorld.map((m) => m.allianceFrequency)),
+		technologyIndexSpread: {
+			min: mean(perWorld.map((m) => m.technologyIndex.min)),
+			median: mean(perWorld.map((m) => m.technologyIndex.median)),
+			max: mean(perWorld.map((m) => m.technologyIndex.max)),
+			mean: mean(perWorld.map((m) => m.technologyIndex.mean))
+		},
+		gdpPerCapitaSpread: {
+			min: mean(perWorld.map((m) => m.gdpPerCapita.min)),
+			median: mean(perWorld.map((m) => m.gdpPerCapita.median)),
+			max: mean(perWorld.map((m) => m.gdpPerCapita.max)),
+			mean: mean(perWorld.map((m) => m.gdpPerCapita.mean))
+		},
 		hegemonyShare: perWorld.filter((m) => m.largestEmpireShare > 0.9).length / Math.max(1, worlds),
 		worldsWithWar: perWorld.filter((m) => m.numberOfWars > 0).length / Math.max(1, worlds),
 		governmentPlurality: govPlurality,
@@ -146,6 +163,12 @@ export function formatReport(result: BatchResult): string {
 	lines.push(`  territorial concentration ... ${num(s.meanTerritorialConcentration)}`);
 	lines.push(`  GDP inequality (gini) ....... ${num(s.meanGdpInequality)}`);
 	lines.push(`  technology convergence ...... ${num(s.meanTechnologyConvergence)}`);
+	lines.push(
+		`  technology index ............ min ${num(s.technologyIndexSpread.min)}, median ${num(s.technologyIndexSpread.median)}, max ${num(s.technologyIndexSpread.max)}`
+	);
+	lines.push(
+		`  GDP / capita ................ min ${num(s.gdpPerCapitaSpread.min)}, median ${num(s.gdpPerCapitaSpread.median)}, max ${num(s.gdpPerCapitaSpread.max)}`
+	);
 	lines.push(`  political transitions ....... ${num(s.meanPoliticalTransitions)}`);
 	lines.push(`  alliance frequency .......... ${pct(s.meanAllianceFrequency)}`);
 	lines.push(`  hegemony (>90% territory) ... ${pct(s.hegemonyShare)} of worlds`);

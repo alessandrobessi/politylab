@@ -3166,8 +3166,49 @@ namespace.param: old → new — reason (milestone / seed evidence)
   precedent) keeps it in a plausible band. §28's `capitalPressure` and
   `rapidIndustrialization` inputs are proxies (`clamp01(K/Y ÷ 6)` and
   `clamp01(max(0, GDP growth) ÷ 0.05)`) pending the deferred §21 structure data.
+- `technology.diffusionGapFloor = 0.05` (post-v0.1 calibration) — §25 diffusion
+  used the raw gap `max(0, otherTech − ownTech)`, which pulls every state to an
+  identical frontier over centuries. The floor makes diffusion operate only once
+  a state is more than 5 points behind a partner, so genuine laggards are still
+  lifted ("diffusion should matter", §77) while near-peers stay spread. See the
+  calibration-pass note below.
 
 ### Coefficient changes
+
+- **Post-v0.1 calibration pass** (uses the M27 `pnpm mc` batch as the feedback
+  loop; closes two of the §77 watches). Baseline before this pass, 100 worlds ×
+  1,000 y: technology convergence **1.00** (every seed), state extinction **3.8%**
+  (median world lost 0 of 8), and `td6ki3` fired on 1 seed.
+  - `technology.innovationRate 0.006 → 0.0042`, `diffusionRate 0.01 → 0.0072`,
+    `maxAnnualDiffusion 0.02 → 0.013`, plus the new `diffusionGapFloor` (below).
+    At the §79 rates every state saturated the frontier well inside 1,000 y and
+    the technology index converged to an identical value — no divergence at all,
+    against §77. After: index min/median/max ≈ **0.89 / 0.92 / 0.95**
+    (convergence 0.95), with diffusion still visibly closing large gaps and the
+    residual divergence compounding into a wide GDP-per-capita spread
+    (≈ 8 – 19, gini ≈ 0.44).
+  - Warfare — capture threshold `attackerSuccess 0.65 → 0.60`, rate factor
+    `0.25 → 0.34` (both directions), and the peace formula reweighted from
+    `0.03 + 0.5·avg(desire) + 0.35·max(desire)` to
+    `0.02 + 0.62·min(desire) + 0.26·avg(desire)`. At the old values a war
+    almost never transferred enough land to finish a state — the loser's
+    desperation ended every war in ~2 y before the winner could press. After:
+    state extinction ≈ **21%** over 1,000 y (median world loses 2 of 8, worst
+    4, best 0), war duration ≈ 3.5 y, largest empire ≈ 37%, **0 seeds** reach
+    the 90% hegemony bar (the §38 overextension brake still holds). §77's "some
+    persist for centuries, some disappear" is now genuinely met.
+  - **Still open (documented, not fixed here):** at horizons past the v0.1
+    1,000-year bar the world consolidates (≈ 45% extinction, median 4–5
+    survivors by year 2,000) and `td6ki3` — all surviving states the same
+    government — fires on ~15% of 2,000-year seeds. Republic is the plurality
+    in ~64% of 1,000-year worlds. The cause is structural: `politicalParticipation`
+    only rises (via `reform` transitions, which developed states score highly)
+    and `classifyGovernment` routes "high participation + rule of law" straight
+    to `republic`, so development ratchets toward one type (a soft P10 tension).
+    Coefficient nudges here backfired (they over-routed to `oligarchy` and made
+    `td6ki3` fire *more* at 1,000 y); the real fix is a continuous,
+    faction-resisted participation/centralization drift and a multi-axis
+    classifier, deferred to its own pass.
 
 - War-frequency pass after M18 (Phase 4 gate): `warfare.warThreshold 0.20 → 0.25`;
   `scoreWarTarget` `territorialValue` 0.3+0.7·agri → 0.15+0.6·agri, `resourceValue`
@@ -3337,12 +3378,21 @@ namespace.param: old → new — reason (milestone / seed evidence)
   (diffusion dominates divergence), though not pathologically early (s6j4is
   clear). Both are recorded here so the M9/M17 `Calibration watch` notes above
   now have Monte Carlo evidence behind them.
+- **Post-v0.1 calibration pass.** Closed watches (a) and (b): the technology
+  index now spreads ≈ 0.89–0.95 across a world's survivors (was a single value)
+  and state extinction is ≈ 21% over 1,000 y (was ≈ 4%), median world losing 2
+  of 8 with 0 seeds reaching hegemony. Coefficients and rationale are in the
+  "Coefficient changes" section above. A new watch is recorded there: government
+  diversity at horizons beyond 1,000 y — republic is the 1,000-year plurality
+  (~64% of worlds, `td6ki3` clear) but consolidation past that makes `td6ki3`
+  fire on ~15% of 2,000-year seeds; the fix is structural (participation must
+  not ratchet one-way with development) and is its own pass.
 
 **v0.1 complete.** All 27 milestones landed; the BLUEPRINT §51 checklist (16
 conditions) is met; determinism, architecture, long-run, and directional test
 suites are green (248 tests). The coefficient set is the §79 defaults plus the
 additions and changes catalogued above — every divergence has a rationale and,
-where relevant, a named watch for the first dedicated calibration pass after
-v0.1 (the two §77 softness items from M27, the `legitimacyMeanReversion` /
-urbanization interaction from M10, and the `technology.innovationRate` question
-from M9).
+where relevant, a named watch. Remaining watches for later passes: government
+diversity at long horizons (above); the `legitimacyMeanReversion` / urbanization
+(§20) interaction from M10; economic-structure sector shares (§21) and economic
+shocks (§67), still deferred.

@@ -45,7 +45,11 @@ export function computeDomesticInnovation(
 	);
 }
 
-/** One domain's diffusion from a single partner (MODEL.md §25). 0 without a positive gap. */
+/**
+ * One domain's diffusion from a single partner (MODEL.md §25). Zero unless the
+ * state is more than `diffusionGapFloor` behind the partner (see §92) — so
+ * near-peers stay spread while true laggards are pulled up.
+ */
 export function computeDiffusion(
 	ownTech: number,
 	otherTech: number,
@@ -54,7 +58,7 @@ export function computeDiffusion(
 	proximity: number,
 	config: SimulationConfig
 ): number {
-	const gap = Math.max(0, otherTech - ownTech);
+	const gap = Math.max(0, otherTech - ownTech - config.technology.diffusionGapFloor);
 	return gap * config.technology.diffusionRate * tradeIntensity * diplomaticOpenness * proximity;
 }
 

@@ -61,10 +61,20 @@ export const DEFAULT_MODEL_CONFIG = {
 	},
 
 	technology: {
-		innovationRate: 0.006,
-		diffusionRate: 0.01,
-		maxAnnualDiffusion: 0.02,
-		researchReferenceIntensity: 0.02
+		// §79 values 0.006 / 0.01 / 0.02 → lowered (post-v0.1 calibration). At the
+		// §79 rates every state saturates the frontier well inside 1,000 years and
+		// technology convergence → 1.00 across all Monte-Carlo seeds, violating the
+		// §77 "states should diverge technologically" target. See §92.
+		innovationRate: 0.0042,
+		diffusionRate: 0.0072,
+		maxAnnualDiffusion: 0.013,
+		researchReferenceIntensity: 0.02,
+
+		// Not in MODEL.md §79. Diffusion only operates once a state is more than
+		// this far behind a partner — so laggards are pulled up ("diffusion should
+		// matter", §77) while leaders and near-peers stay spread rather than all
+		// asymptoting to an identical frontier. See §92.
+		diffusionGapFloor: 0.05
 	},
 
 	politics: {

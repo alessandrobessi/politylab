@@ -207,16 +207,19 @@ export function resolveWarfare(world: World, ctx: SimContext): void {
 		}
 
 		// Territorial capture (MODEL.md §60): sustained superiority, one region.
-		if (attackerSuccess > 0.65) {
-			const pCapture = clamp01((attackerSuccess - 0.65) / 0.35) * 0.25;
+		// Capture threshold / rate raised in the post-v0.1 calibration pass — at
+		// §60's original 0.65 / 0.25 wars almost never transferred enough land to
+		// finish a state (extinction rate ≈ 4% over 1,000 y, below §77). See §92.
+		if (attackerSuccess > 0.6) {
+			const pCapture = clamp01((attackerSuccess - 0.6) / 0.4) * 0.34;
 			if (rng.bool(pCapture) && front.length > 0) {
 				const region = rng.pick(front);
 				transferRegion(world, region, defender, attacker, owned);
 				war.regionsToAttacker.push(region.id);
 			}
-		} else if (attackerSuccess < 0.35 && defender.alive) {
+		} else if (attackerSuccess < 0.4 && defender.alive) {
 			const counter = contestedRegions(defender, attacker, owned);
-			const pCapture = clamp01((0.35 - attackerSuccess) / 0.35) * 0.25;
+			const pCapture = clamp01((0.4 - attackerSuccess) / 0.4) * 0.34;
 			if (counter.length > 0 && rng.bool(pCapture)) {
 				const region = rng.pick(counter);
 				transferRegion(world, region, attacker, defender, owned);
@@ -229,11 +232,14 @@ export function resolveWarfare(world: World, ctx: SimContext): void {
 			continue;
 		}
 
-		// Peace (MODEL.md §62).
+		// Peace (MODEL.md §62). Post-v0.1 calibration: weight the *mutual* desire to
+		// stop far more heavily than either side's unilateral desire, so a side
+		// that is decisively winning (low exhaustion, high success) can press the
+		// advantage instead of the loser's desperation ending every war in ~2 y.
 		const desireAtt = peaceDesire(attacker, attackerSuccess, duration);
 		const desireDef = peaceDesire(defender, 1 - attackerSuccess, duration);
 		const pPeace = clamp01(
-			0.03 + 0.5 * ((desireAtt + desireDef) / 2) + 0.35 * Math.max(desireAtt, desireDef)
+			0.02 + 0.62 * Math.min(desireAtt, desireDef) + 0.26 * ((desireAtt + desireDef) / 2)
 		);
 		if (rng.bool(pPeace)) endWar(world, war, attacker, defender, ctx.year, ctx);
 	}

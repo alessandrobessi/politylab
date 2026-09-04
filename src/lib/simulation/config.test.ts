@@ -2,7 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { DEFAULT_MODEL_CONFIG, makeConfig } from './config';
 
 describe('DEFAULT_MODEL_CONFIG', () => {
-	it('matches the values in MODEL.md §79', () => {
+	// The §79 defaults plus every divergence recorded in MODEL.md §92. This is a
+	// change-detector: updating a coefficient must be a deliberate edit here too.
+	it('holds the calibrated coefficient set (MODEL.md §79 + §92)', () => {
 		expect(DEFAULT_MODEL_CONFIG).toEqual({
 			population: {
 				baseBirthRate: 0.03,
@@ -27,10 +29,11 @@ describe('DEFAULT_MODEL_CONFIG', () => {
 			infrastructure: { growthCoefficient: 0.02, depreciation: 0.005, referenceIntensity: 0.04 },
 			welfare: { referenceIntensity: 0.05 },
 			technology: {
-				innovationRate: 0.006,
-				diffusionRate: 0.01,
-				maxAnnualDiffusion: 0.02,
-				researchReferenceIntensity: 0.02
+				innovationRate: 0.0042,
+				diffusionRate: 0.0072,
+				maxAnnualDiffusion: 0.013,
+				researchReferenceIntensity: 0.02,
+				diffusionGapFloor: 0.05
 			},
 			politics: {
 				stabilityAdjustmentRate: 0.15,
@@ -77,8 +80,8 @@ describe('makeConfig', () => {
 		});
 		expect(cfg.technology.diffusionRate).toBe(0.006);
 		// sibling keys in an overridden namespace are preserved
-		expect(cfg.technology.innovationRate).toBe(0.006);
-		expect(cfg.technology.maxAnnualDiffusion).toBe(0.02);
+		expect(cfg.technology.innovationRate).toBe(0.0042);
+		expect(cfg.technology.maxAnnualDiffusion).toBe(0.013);
 		expect(cfg.warfare.baseWarProbability).toBe(0.2);
 		expect(cfg.warfare.warThreshold).toBe(0.25);
 		// untouched namespaces are intact
