@@ -25,7 +25,7 @@ import { updateGovernmentRevenue, updateGovernmentSpending } from './systems/gov
 import { updateTechnology } from './systems/technology';
 import { updatePolitics } from './systems/politics';
 import { updateTrade } from './systems/trade';
-import { updateDiplomacy } from './systems/diplomacy';
+import { updateAlliances, updateDiplomacy } from './systems/diplomacy';
 import { makeStrategicDecisions } from './strategy/decisions';
 import { resolveWarfare, applyTerritorialChanges } from './systems/warfare';
 import { generateEvents } from './events/event-engine';
@@ -62,6 +62,7 @@ export function simulateYear(world: World, options: SimulateOptions = {}): World
 	updatePolitics(world, ctx); // 7
 	updateTrade(world, ctx); // 8
 	updateDiplomacy(world, ctx); // 9
+	updateAlliances(world, ctx); // 9 (alliances)
 	makeStrategicDecisions(world, ctx); // 10
 	resolveWarfare(world, ctx); // 11
 	applyTerritorialChanges(world, ctx); // 12

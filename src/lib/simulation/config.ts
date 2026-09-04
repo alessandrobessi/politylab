@@ -91,7 +91,15 @@ export const DEFAULT_MODEL_CONFIG = {
 	diplomacy: {
 		opinionMeanReversion: 0.02,
 		warMemoryDecay: 0.97,
-		claimDecay: 0.99
+		claimDecay: 0.99,
+
+		// Formation rate 0.10 is MODEL.md §49; its threshold (§49 gives 0.65) and
+		// the mirror break parameters are tuned for M13's higher component
+		// values (trust/trade run high in a peaceful world). See §92.
+		allianceFormationRate: 0.1,
+		allianceThreshold: 0.78,
+		allianceBreakRate: 0.08,
+		allianceBreakThreshold: 0.68
 	},
 
 	warfare: {

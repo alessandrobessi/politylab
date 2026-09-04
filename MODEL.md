@@ -3130,6 +3130,16 @@ namespace.param: old → new — reason (milestone / seed evidence)
   +0.8, mean ≈ 0.5). **Calibration watch:** revisit after M15/M16 — if trade +
   warm relations suppress wars entirely, `computeTradeScore` (whose components
   are proxies, below) or this coefficient need further tuning.
+- Alliances (§49, M13): formation rate 0.10 and the `sigmoid(·×10)` shape are
+  from MODEL.md; `allianceThreshold` is raised 0.65 → 0.78 and mirror break
+  parameters added (`allianceBreakRate 0.08`, `allianceBreakThreshold 0.68`)
+  because the score's components (trust, trade, opinion) run high in a peaceful
+  world — at 0.65 every pair allied within centuries. With the wider band,
+  alliances form when a genuine shared threat lifts the score and dissolve when
+  it fades: ≈ 4–11 of 28 pairs allied at year 1000, and a dominant state raises
+  its neighbours' alliance activity ≈ 75%. `strategicCompatibility` in the
+  score = `1 − rivalry`. Trust also gained an erosion-toward-0.35 term (M13) so
+  it is earned rather than assumed.
 - `computeTradeScore` components (§26, M12) are interpretations of the named
   factors: `economicCompatibility = prosperityA · prosperityB` (both need
   surplus); `relationQuality` from the two-way average opinion;
@@ -3208,6 +3218,12 @@ namespace.param: old → new — reason (milestone / seed evidence)
   relation fields bounded/finite; the opinion↔threat loop has gain < 1
   (converges). (Note: M12 raises `opinionMeanReversion`, softening the
   toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M13: alliances emerge from incentives, not scripts — ≈ 4–11 of 28 pairs
+  allied at year 1000, driven mostly by shared-threat (`commonThreat`, weight
+  0.30). Balance of power works: making one state militarily dominant raises
+  alliance activity among the other seven by ≈ 75% (8-seed control vs hegemon).
+  Opinions keep a wide spread (≈ 0.5–0.7) after raising `opinionMeanReversion`
+  and widening the alliance band.
 - M12: trade grows to a moderate-to-high steady state (mean ≈ 0.7) between
   developed, reachable, non-belligerent states — trade blocs rather than
   isolation, given a peaceful millennium with advanced transport. Belligerent
