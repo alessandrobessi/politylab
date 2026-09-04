@@ -49,10 +49,11 @@ describe('DEFAULT_MODEL_CONFIG', () => {
 				allianceBreakThreshold: 0.68
 			},
 			warfare: {
-				baseWarProbability: 0.12,
+				baseWarProbability: 0.08,
 				warThreshold: 0.2,
 				baseEconomicDamage: 0.01,
-				peaceExhaustionDecay: 0.92
+				peaceExhaustionDecay: 0.92,
+				baseInterestRate: 0.03
 			},
 			history: { snapshotInterval: 10 }
 		});

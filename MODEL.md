@@ -3169,6 +3169,12 @@ namespace.param: old → new — reason (milestone / seed evidence)
 
 ### Coefficient changes
 
+- `warfare.baseWarProbability: 0.12 → 0.08` (M16) and territorial-capture
+  probability factor 0.4 → 0.25 — once real casualties/economic damage/territory
+  loss were in, the M15 frequency ground weak states down: 2–4 of 8 survived and
+  1 seed in 8 reached >90% territory. At the lower values, 4–7 of 8 survive and
+  0 of 12 seeds exceed 90%. The remaining consolidation pressure should ease once
+  M17 adds the overextension brake (§38).
 - `warfare.warThreshold: 0.15 → 0.20` (M15) — at 0.15 the §53 probability fired
   ~420 wars per 1,000 years (a declaration every ~2 years); 0.20 brings it to
   ~280–320, still frequent. Real calibration of war frequency waits on M16
@@ -3227,6 +3233,17 @@ namespace.param: old → new — reason (milestone / seed evidence)
   relation fields bounded/finite; the opinion↔threat loop has gain < 1
   (converges). (Note: M12 raises `opinionMeanReversion`, softening the
   toward-−1 entrenchment; opinions then span ≈ −0.1 to +0.8.)
+- M16: warfare. Combat is `attackerSuccess = sigmoid(ln(strengthRatio)·3)` with
+  terrain defence (§56–57); casualties ≤ 3%/yr (§58), economic damage and
+  capital destruction (§59), war exhaustion accrual (§61). A dominant attacker
+  captures one border region at a time (§60), the former owner keeps a claim
+  (§51), and a state is removed only at territory 0 (§64, records preserved).
+  Peace attractiveness rises with exhaustion, defeat, duration, instability
+  (§62); victory/defeat move legitimacy by ≤ ±0.08 (§63). Debt now moves
+  (`updateDebt`, §39): war deficits + interest × risk modifier, peacetime
+  repayment. Over 1,000 years: ~260–360 short wars, 4–7 of 8 states surviving,
+  largest empire 20–64%, world finite. Consolidation is still on the high side
+  pending M17's overextension brake.
 - M15: war decisions. `scoreWarTarget` (§52) contributors are proxies:
   `territorialValue` from target border-land agri potential, `resourceValue`
   from its resource means, `strategicValue = 0.4·proximity + 0.6·borderTension`,

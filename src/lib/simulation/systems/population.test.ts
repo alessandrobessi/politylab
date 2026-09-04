@@ -109,7 +109,8 @@ describe('updatePopulation', () => {
 			if (r.ownerId) owned.set(r.ownerId, (owned.get(r.ownerId) ?? 0) + r.population);
 		}
 		for (const s of world.states) {
-			expect(owned.get(s.id)!).toBeCloseTo(s.population, 2);
+			if (!s.alive) continue;
+			expect(owned.get(s.id) ?? 0).toBeCloseTo(s.population, 2);
 		}
 	});
 
@@ -133,6 +134,7 @@ describe('long-run demographic behaviour', () => {
 			expect(after / before).toBeGreaterThan(0.4);
 			expect(after / before).toBeLessThan(4);
 			for (const s of world.states) {
+				if (!s.alive) continue;
 				expect(Number.isFinite(s.population)).toBe(true);
 				expect(s.population).toBeGreaterThan(0);
 			}

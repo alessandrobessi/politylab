@@ -21,7 +21,11 @@ import { TraceSink } from './trace';
 import { updateEnvironment } from './systems/environment';
 import { updatePopulation } from './systems/population';
 import { updateProduction } from './systems/economy';
-import { updateGovernmentRevenue, updateGovernmentSpending } from './systems/government';
+import {
+	updateDebt,
+	updateGovernmentRevenue,
+	updateGovernmentSpending
+} from './systems/government';
 import { updateMilitary } from './systems/military';
 import { updateTechnology } from './systems/technology';
 import { updatePolitics } from './systems/politics';
@@ -59,6 +63,7 @@ export function simulateYear(world: World, options: SimulateOptions = {}): World
 	updateProduction(world, ctx); // 3
 	updateGovernmentRevenue(world, ctx); // 4
 	updateGovernmentSpending(world, ctx); // 5
+	updateDebt(world, ctx); // 5 (debt interest / war deficits)
 	updateMilitary(world, ctx); // 5 (military capital & power)
 	updateTechnology(world, ctx); // 6
 	updatePolitics(world, ctx); // 7

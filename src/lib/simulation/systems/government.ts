@@ -83,3 +83,31 @@ export function updateGovernmentSpending(world: World, ctx: SimContext): void {
 		}
 	}
 }
+
+/**
+ * Phase 5 (continued) — Debt (MODEL.md §39). Normal budgets balance, so debt only
+ * moves through war deficits, interest (scaled by a debt-stress risk modifier),
+ * and peacetime repayment.
+ */
+export function updateDebt(world: World, ctx: SimContext): void {
+	const rate = ctx.config.warfare.baseInterestRate;
+	for (const state of world.states) {
+		if (!state.alive) continue;
+
+		const atWar = world.wars.some(
+			(w) => w.active && (w.attackerId === state.id || w.defenderId === state.id)
+		);
+		const warIntensity = atWar
+			? Math.max(
+					...world.wars
+						.filter((w) => w.active && (w.attackerId === state.id || w.defenderId === state.id))
+						.map((w) => w.intensity)
+				)
+			: 0;
+
+		const interest = state.debt * rate * (1 + 2 * state.debtStress);
+		const warDeficit = warIntensity * 0.04 * state.gdp;
+		const repayment = atWar ? 0 : Math.min(state.debt, 0.04 * state.revenue);
+		state.debt = Math.max(0, state.debt + interest + warDeficit - repayment);
+	}
+}

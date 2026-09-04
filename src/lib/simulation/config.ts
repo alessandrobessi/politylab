@@ -103,12 +103,16 @@ export const DEFAULT_MODEL_CONFIG = {
 	},
 
 	warfare: {
-		baseWarProbability: 0.12,
+		baseWarProbability: 0.08,
 		warThreshold: 0.2,
 
 		baseEconomicDamage: 0.01,
 
-		peaceExhaustionDecay: 0.92
+		peaceExhaustionDecay: 0.92,
+
+		// MODEL.md §39 (not in §79): sovereign debt interest rate, scaled by a
+		// risk modifier that grows with debt stress.
+		baseInterestRate: 0.03
 	},
 
 	history: {
