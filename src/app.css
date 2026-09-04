@@ -1,0 +1,221 @@
+/* PolityLab — global design system. "Situation room" console: dark, cartographic,
+   telemetry-dense. Every component pulls colour/spacing/type from these tokens. */
+
+:root {
+	--bg: #0a0e14;
+	--bg-sunken: #070a0f;
+	--panel: #111823;
+	--panel-2: #0d1420;
+	--elev: #18212f;
+	--elev-hover: #1e2939;
+
+	--border: rgba(255, 255, 255, 0.07);
+	--border-strong: rgba(255, 255, 255, 0.16);
+
+	--text: #e7edf4;
+	--text-dim: #93a1b1;
+	--text-faint: #5f6f80;
+
+	--accent: #38bdf8;
+	--accent-strong: #0ea5e9;
+	--accent-ink: #04263a;
+	--accent-glow: rgba(56, 189, 248, 0.28);
+
+	--warn: #f5a524;
+	--warn-glow: rgba(245, 165, 36, 0.22);
+	--danger: #f43f5e;
+	--good: #34d399;
+
+	--ocean: #071019;
+	--ocean-2: #0a1622;
+
+	--radius: 9px;
+	--radius-sm: 6px;
+	--radius-xs: 4px;
+
+	--shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 30px -12px rgba(0, 0, 0, 0.6);
+
+	--font-display: 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	--font-mono:
+		'IBM Plex Mono', ui-monospace, 'SF Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+
+body {
+	background: var(--bg);
+	color: var(--text);
+	font-family: var(--font-sans);
+	font-size: 14px;
+	line-height: 1.45;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+	overflow: hidden; /* the app owns its own scroll regions */
+}
+
+@media (max-width: 900px) {
+	body {
+		overflow: auto;
+	}
+}
+
+h1,
+h2,
+h3,
+h4 {
+	font-family: var(--font-display);
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	margin: 0;
+}
+
+button {
+	font-family: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: var(--radius-xs);
+}
+
+/* ---- shared primitives ------------------------------------------------- */
+
+.panel {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-panel);
+}
+
+.eyebrow {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	font-weight: 500;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: var(--text-faint);
+}
+
+.num {
+	font-family: var(--font-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Ghost / segmented control buttons used across the console */
+.btn {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4em;
+	padding: 0.4rem 0.7rem;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1;
+	color: var(--text-dim);
+	background: var(--elev);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	transition:
+		background 0.14s ease,
+		color 0.14s ease,
+		border-color 0.14s ease,
+		box-shadow 0.14s ease;
+	white-space: nowrap;
+}
+.btn:hover:not(:disabled) {
+	background: var(--elev-hover);
+	color: var(--text);
+	border-color: var(--border-strong);
+}
+.btn:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+.btn.is-active {
+	color: var(--accent-ink);
+	background: var(--accent);
+	border-color: var(--accent);
+	box-shadow:
+		0 0 0 1px var(--accent),
+		0 0 18px -4px var(--accent-glow);
+}
+
+input[type='number'],
+input[type='text'],
+select {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--text);
+	background: var(--panel-2);
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	padding: 0.4rem 0.55rem;
+}
+input:focus,
+select:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Range inputs — a thin track with a glowing cyan thumb */
+input[type='range'] {
+	appearance: none;
+	width: 100%;
+	height: 4px;
+	border-radius: 999px;
+	background: var(--elev);
+	cursor: pointer;
+}
+input[type='range']::-webkit-slider-thumb {
+	appearance: none;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--accent);
+	border: 2px solid var(--bg);
+	box-shadow: 0 0 12px -1px var(--accent-glow);
+}
+input[type='range']::-moz-range-thumb {
+	width: 14px;
+	height: 14px;
+	border: 2px solid var(--bg);
+	border-radius: 50%;
+	background: var(--accent);
+}
+
+/* Scrollbars inside panels */
+.scroll {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-strong) transparent;
+}
+.scroll::-webkit-scrollbar {
+	width: 9px;
+	height: 9px;
+}
+.scroll::-webkit-scrollbar-thumb {
+	background: var(--border-strong);
+	border-radius: 999px;
+	border: 2px solid transparent;
+	background-clip: padding-box;
+}
+.scroll::-webkit-scrollbar-thumb:hover {
+	background: var(--text-faint);
+	background-clip: padding-box;
+}

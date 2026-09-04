@@ -3,9 +3,9 @@
 
 	let {
 		values,
-		width = 120,
-		height = 28,
-		colour = '#2b6cb0'
+		width = 96,
+		height = 22,
+		colour = 'var(--accent)'
 	}: { values: number[]; width?: number; height?: number; colour?: string } = $props();
 
 	const points = $derived(sparklinePoints(values, width, height));
@@ -16,30 +16,49 @@
 	);
 </script>
 
-<svg {width} {height} class="spark" viewBox="0 0 {width} {height}" preserveAspectRatio="none">
-	{#if points}
-		<polyline {points} fill="none" stroke={colour} stroke-width="1.5" />
-	{/if}
-</svg>
-<span class="trend {trend}" aria-hidden="true">
-	{trend === 'up' ? '▲' : trend === 'down' ? '▼' : '—'}
+<span class="spark-wrap">
+	<svg {width} {height} class="spark" viewBox="0 0 {width} {height}" preserveAspectRatio="none">
+		{#if points}
+			<polyline
+				{points}
+				fill="none"
+				stroke={colour}
+				stroke-width="1.5"
+				stroke-linejoin="round"
+				stroke-linecap="round"
+			/>
+		{/if}
+	</svg>
+	<span class="trend {trend}" aria-hidden="true">
+		{trend === 'up' ? '▲' : trend === 'down' ? '▼' : '—'}
+	</span>
 </span>
 
 <style>
+	.spark-wrap {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 0;
+	}
 	.spark {
+		flex: 1;
+		min-width: 0;
+		width: 100%;
+		height: 22px;
 		vertical-align: middle;
+		opacity: 0.9;
 	}
 	.trend {
-		font-size: 0.65rem;
-		margin-left: 0.25rem;
+		font-size: 0.55rem;
 	}
 	.trend.up {
-		color: #2f855a;
+		color: var(--good);
 	}
 	.trend.down {
-		color: #c53030;
+		color: var(--danger);
 	}
 	.trend.flat {
-		color: #999;
+		color: var(--text-faint);
 	}
 </style>

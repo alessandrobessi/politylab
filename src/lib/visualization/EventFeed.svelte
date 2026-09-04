@@ -18,26 +18,27 @@
 	const shown = $derived(
 		events
 			.filter((e) => e.importance >= minImportance)
-			.slice(-60)
+			.slice(-80)
 			.reverse()
 	);
-	const dot = (imp: number) =>
-		imp >= 0.9 ? '#c0392b' : imp >= 0.7 ? '#e67e22' : imp >= 0.5 ? '#f1c40f' : '#95a5a6';
+	const tier = (imp: number) =>
+		imp >= 0.9 ? 'crit' : imp >= 0.7 ? 'high' : imp >= 0.5 ? 'mid' : 'low';
 </script>
 
 <section class="feed">
 	<header>
-		<h2>Historical events</h2>
+		<h2>Historical Feed</h2>
 		<label>
-			min importance {minImportance.toFixed(1)}
+			<span class="eyebrow">min importance</span>
 			<input type="range" min="0" max="1" step="0.1" bind:value={minImportance} />
+			<span class="num">{minImportance.toFixed(1)}</span>
 		</label>
 	</header>
-	<ul>
+	<ul class="scroll">
 		{#each shown as e (e.id)}
-			<li class:hot={e.actors.includes(selectedId ?? '')}>
-				<span class="year">{e.year}</span>
-				<span class="d" style:background={dot(e.importance)}></span>
+			<li class="t-{tier(e.importance)}" class:hot={e.actors.includes(selectedId ?? '')}>
+				<span class="year num">{e.year}</span>
+				<span class="d"></span>
 				<span class="title">{e.title}</span>
 				{#if e.actors.length}
 					<span class="actors">
@@ -62,76 +63,134 @@
 </section>
 
 <style>
-	.feed header {
+	.feed {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		min-height: 0;
+	}
+	header {
 		display: flex;
 		justify-content: space-between;
-		align-items: baseline;
+		align-items: center;
 		flex-wrap: wrap;
 		gap: 0.5rem;
+		padding: 0.55rem 0.75rem;
+		border-bottom: 1px solid var(--border);
 	}
 	h2 {
-		font-size: 0.95rem;
-		margin: 0;
+		font-size: 12px;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--text-dim);
 	}
 	label {
-		font-size: 0.78rem;
-		color: #666;
 		display: flex;
-		gap: 0.4rem;
+		gap: 0.5rem;
 		align-items: center;
+		color: var(--text-faint);
 	}
+	label input[type='range'] {
+		width: 7rem;
+	}
+	label .num {
+		font-size: 11px;
+		color: var(--text-dim);
+		width: 1.6rem;
+	}
+
 	ul {
 		list-style: none;
 		padding: 0;
-		margin: 0.4rem 0 0;
-		max-height: 14rem;
+		margin: 0;
+		flex: 1;
 		overflow-y: auto;
-		border: 1px solid #e3e3e3;
-		border-radius: 4px;
 	}
 	li {
 		display: flex;
-		align-items: baseline;
-		gap: 0.5rem;
-		padding: 0.28rem 0.6rem;
-		border-bottom: 1px solid #f0f0f0;
-		font-size: 0.82rem;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.32rem 0.75rem;
+		border-bottom: 1px solid var(--border);
+		border-left: 2px solid transparent;
+		font-size: 12px;
+		color: var(--text-dim);
+	}
+	li:hover {
+		background: var(--panel-2);
 	}
 	li.hot {
-		background: #fff8e6;
+		background: color-mix(in srgb, var(--accent) 9%, transparent);
+		border-left-color: var(--accent);
 	}
 	.year {
-		color: #888;
-		font-variant-numeric: tabular-nums;
-		min-width: 2.5rem;
+		color: var(--text-faint);
+		min-width: 2.75rem;
+		font-size: 11px;
 	}
 	.d {
-		width: 0.55rem;
-		height: 0.55rem;
+		width: 0.5rem;
+		height: 0.5rem;
 		border-radius: 50%;
 		flex: none;
-		align-self: center;
+		background: var(--text-faint);
+	}
+	.t-low .d {
+		background: #64748b;
+	}
+	.t-mid .d {
+		background: var(--warn);
+	}
+	.t-high .d {
+		background: #fb923c;
+	}
+	.t-crit .d {
+		background: var(--danger);
+		box-shadow: 0 0 8px -1px var(--danger);
+	}
+	.t-crit .title {
+		color: var(--text);
 	}
 	.title {
 		flex: 1;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.actors {
 		display: flex;
-		gap: 0.2rem;
+		gap: 0.25rem;
+		flex: none;
 	}
 	.actors button {
-		font-size: 0.68rem;
-		padding: 0 0.3rem;
-		border: 1px solid #ddd;
-		border-radius: 3px;
-		background: #fafafa;
+		font-family: var(--font-mono);
+		font-size: 10px;
+		padding: 0.05rem 0.4rem;
+		border: 1px solid var(--border-strong);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--text-dim);
 		cursor: pointer;
+		transition:
+			color 0.12s,
+			border-color 0.12s;
+	}
+	.actors button:hover {
+		color: var(--text);
+		border-color: var(--accent);
 	}
 	.causes {
-		color: #999;
-		font-size: 0.72rem;
+		color: var(--text-faint);
+		font-family: var(--font-mono);
+		font-size: 10px;
+		flex: none;
+		max-width: 14rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.empty {
-		color: #999;
+		color: var(--text-faint);
+		justify-content: center;
 	}
 </style>

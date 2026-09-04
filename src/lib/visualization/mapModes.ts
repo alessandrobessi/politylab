@@ -5,6 +5,9 @@ import { technologyIndex } from '$lib/simulation';
 
 export type MapMode = 'political' | 'gdp' | 'stability' | 'military' | 'technology';
 
+/** Fill for regions with no owner (and any missing lookup) — a dark landmass. */
+const UNOWNED = '#1b2430';
+
 export const MAP_MODES: { id: MapMode; label: string }[] = [
 	{ id: 'political', label: 'Political' },
 	{ id: 'gdp', label: 'GDP / capita' },
@@ -58,7 +61,7 @@ export function colourRegions(world: World, mode: MapMode): RegionColouring {
 	if (mode === 'political') {
 		for (const r of world.regions) {
 			const hue = r.ownerId === null ? null : ownerHue.get(r.ownerId);
-			fill.set(r.id, hue == null ? '#d8dde2' : `hsl(${hue.toFixed(0)} 52% 58%)`);
+			fill.set(r.id, hue == null ? UNOWNED : `hsl(${hue.toFixed(0)} 58% 56%)`);
 		}
 		return { fill, legend: null };
 	}
@@ -72,7 +75,7 @@ export function colourRegions(world: World, mode: MapMode): RegionColouring {
 	const byState = new Map(alive.map((s) => [s.id, scale(spec.value(s))]));
 
 	for (const r of world.regions) {
-		fill.set(r.id, r.ownerId ? (byState.get(r.ownerId) ?? '#d8dde2') : '#d8dde2');
+		fill.set(r.id, r.ownerId ? (byState.get(r.ownerId) ?? UNOWNED) : UNOWNED);
 	}
 	const legend = [0, 0.25, 0.5, 0.75, 1].map((t) => ({
 		label: spec.format(lo + t * (hi - lo)),

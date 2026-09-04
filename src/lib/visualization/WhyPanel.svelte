@@ -8,7 +8,7 @@
 </script>
 
 <div class="why">
-	<div class="why-title">Why? — {title}</div>
+	<div class="why-title"><span class="q">?</span> {title}</div>
 	{#if rows.length === 0}
 		<p class="empty">No contributors recorded this year.</p>
 	{:else}
@@ -19,7 +19,7 @@
 					<span class="bar" class:neg={row.impact < 0}>
 						<span class="fill" style:width="{(row.share * 100).toFixed(0)}%"></span>
 					</span>
-					<span class="impact" class:neg={row.impact < 0}>
+					<span class="impact num" class:neg={row.impact < 0}>
 						{row.impact > 0 ? '+' : ''}{row.impact.toFixed(3)}
 					</span>
 				</li>
@@ -30,15 +30,32 @@
 
 <style>
 	.why {
-		font-size: 0.8rem;
+		font-size: 12px;
 	}
 	.why-title {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-family: var(--font-display);
 		font-weight: 600;
-		color: #444;
-		margin-bottom: 0.3rem;
+		font-size: 12px;
+		color: var(--text);
+		margin-bottom: 0.5rem;
+	}
+	.q {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.05rem;
+		height: 1.05rem;
+		border-radius: 50%;
+		background: var(--accent);
+		color: var(--accent-ink);
+		font-size: 10px;
+		font-weight: 700;
 	}
 	.empty {
-		color: #999;
+		color: var(--text-faint);
 		margin: 0;
 	}
 	ul {
@@ -46,39 +63,40 @@
 		margin: 0;
 		padding: 0;
 		display: grid;
-		gap: 0.2rem;
+		gap: 0.3rem;
 	}
 	li {
 		display: grid;
-		grid-template-columns: 8rem 1fr 3.5rem;
+		grid-template-columns: 7.5rem 1fr 3.5rem;
 		align-items: center;
-		gap: 0.4rem;
+		gap: 0.5rem;
 	}
 	.label {
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		color: var(--text-dim);
 	}
 	.bar {
-		height: 0.7rem;
-		background: #eef1f4;
-		border-radius: 2px;
+		height: 0.5rem;
+		background: var(--elev);
+		border-radius: 999px;
 		overflow: hidden;
 	}
 	.fill {
 		display: block;
 		height: 100%;
-		background: #3a7d3a;
+		background: var(--good);
 	}
 	.bar.neg .fill {
-		background: #b33a3a;
+		background: var(--danger);
 	}
 	.impact {
 		text-align: right;
-		font-variant-numeric: tabular-nums;
-		color: #3a7d3a;
+		font-size: 11px;
+		color: var(--good);
 	}
 	.impact.neg {
-		color: #b33a3a;
+		color: var(--danger);
 	}
 </style>
